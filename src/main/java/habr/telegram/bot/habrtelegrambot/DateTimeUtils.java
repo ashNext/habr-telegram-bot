@@ -1,37 +1,48 @@
 package habr.telegram.bot.habrtelegrambot;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
 
 public class DateTimeUtils {
 
-  public static LocalDateTime parseDateTime(String value) {
-    final String patternDate = "d M yyyy";
-    final String patternDateTime = patternDate + " HH:mm";
-    final String today = "сегодня".toUpperCase();
-    final String yesterday = "вчера".toUpperCase();
-    final String[] months = {
-        "января", "февраля", "марта", "апреля", "мая", "июня",
-        "июля", "августа", "сентября", "октября", "ноября", "декабря"};
+    static final String PATTERN_DATE = "d M yyyy";
+    static final String PATTERN_DATE_TIME = PATTERN_DATE + " HH:mm";
+    static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(PATTERN_DATE).withZone(ZoneId.systemDefault());
+    static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(PATTERN_DATE_TIME).withZone(ZoneId.systemDefault());
 
-    String dateTimeS = value.trim().toUpperCase();
+    static final Map<String, Integer> MONTHS_MAP = Map.ofEntries(
+            Map.entry("января", 1),
+            Map.entry("февраля", 2),
+            Map.entry("марта", 3),
+            Map.entry("апреля", 4),
+            Map.entry("мая", 5),
+            Map.entry("июня", 6),
+            Map.entry("июля", 7),
+            Map.entry("августа", 8),
+            Map.entry("сентября", 9),
+            Map.entry("октября", 10),
+            Map.entry("ноября", 11),
+            Map.entry("декабря", 12));
 
-    dateTimeS = dateTimeS.replace(" В ", " ");
+    static final String TODAY = "СЕГОДНЯ";
+    static final String YESTERDAY = "ВЧЕРА";
 
-    if (dateTimeS.contains(today)) {
-      dateTimeS = dateTimeS.replace(today, DateTimeFormatter.ofPattern(patternDate).format(LocalDate.now()));
-    } else if (dateTimeS.contains(yesterday)) {
-      dateTimeS = dateTimeS.replace(yesterday, DateTimeFormatter.ofPattern(patternDate).format(LocalDate.now().minusDays(1)));
-    } else {
-      for (int i = 0; i < months.length; i++) {
-        if (dateTimeS.contains(months[i].toUpperCase())) {
-          dateTimeS = dateTimeS.replace(months[i].toUpperCase(), i + 1 + "");
-          break;
+    public static Instant parseDateTime(String value) {
+
+        String dateTimeS = value.trim().toUpperCase();
+        dateTimeS = dateTimeS.replace(" В ", " ");
+
+        if (dateTimeS.contains(TODAY)) {
+            dateTimeS = dateTimeS.replace(TODAY, dateFormatter.format(Instant.now()));
+        } else if (dateTimeS.contains(YESTERDAY)) {
+            dateTimeS = dateTimeS.replace(YESTERDAY, dateFormatter.format(Instant.now().minus(1, ChronoUnit.DAYS)));
+        } else {
+            String month = dateTimeS.split(" ")[1];
+            dateTimeS = dateTimeS.replace(month, MONTHS_MAP.get(month).toString());
         }
-      }
+        return dateTimeFormatter.parse(dateTimeS, Instant::from);
     }
-
-    return LocalDateTime.parse(dateTimeS, DateTimeFormatter.ofPattern(patternDateTime));
-  }
 }
