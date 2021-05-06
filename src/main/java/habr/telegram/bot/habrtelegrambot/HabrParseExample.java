@@ -1,6 +1,7 @@
 package habr.telegram.bot.habrtelegrambot;
 
 import habr.telegram.bot.habrtelegrambot.model.Post;
+import java.time.Instant;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,8 +15,8 @@ import java.util.stream.Collectors;
 public class HabrParseExample {
 
     private static final String SITE_URL = "https://habr.com";
-    private static final int MAX_PAGES = 4;
-    private static final int MAX_POSTS = 75;
+    private static final int MAX_PAGES = 3;
+    private static final int MAX_POSTS = 55;
 
 
     private final List<Post> posts = new ArrayList<>();
@@ -50,18 +51,22 @@ public class HabrParseExample {
                 continue;
             }
 
-            String time = contentItem.getElementsByClass("post__time").text();
-
             Elements postTags = contentItem.getElementsByClass("inline-list__item-link hub-link ");
             List<String> tags = postTags.stream().map(Element::text).collect(Collectors.toList());
 
             Element postTitle = postTitles.get(0);
             if (postTitle.hasAttr("href") && postTitle.hasText()) {
-                posts.add(new Post(
-                        postTitle.attr("href"),
-                        postTitle.text(),
-                        DateTimeUtils.parseDateTime(time),
-                        tags));
+                String postUrl = postTitle.attr("href");
+
+                Document postHtml = Jsoup.connect(postUrl).get();
+                Element postTimeElement = postHtml.getElementsByClass("post__time").get(0);
+                Instant time = null;
+                if (postTimeElement.hasAttr("data-time_published")) {
+                    time = DateTimeUtils
+                            .parseDataTimePublished(postTimeElement.attr("data-time_published"));
+                }
+
+                posts.add(new Post(postUrl, postTitle.text(), time, tags));
                 if (posts.size() >= MAX_POSTS) {
                     return;
                 }
