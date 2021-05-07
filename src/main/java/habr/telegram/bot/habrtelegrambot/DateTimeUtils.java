@@ -2,7 +2,6 @@ package habr.telegram.bot.habrtelegrambot;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -15,8 +14,7 @@ public class DateTimeUtils {
             .ofPattern(PATTERN_DATE).withZone(ZoneId.systemDefault());
     static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter
             .ofPattern(PATTERN_DATE_TIME).withZone(ZoneId.systemDefault());
-    static final DateTimeFormatter dateTimePublishedFormatter = DateTimeFormatter
-            .ofPattern("yyyy-MM-dd'T'HH:mm'Z'").withZone(ZoneId.from(ZoneOffset.UTC));
+    static final DateTimeFormatter dateTimePublishedFormatter = DateTimeFormatter.ISO_DATE_TIME;
 
     static final Map<String, Integer> MONTHS_MAP = Map.ofEntries(
             Map.entry("января", 1),
