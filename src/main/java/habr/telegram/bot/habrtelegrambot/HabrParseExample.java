@@ -16,7 +16,7 @@ public class HabrParseExample {
 
     private static final String SITE_URL = "https://habr.com";
     private static final int MAX_PAGES = 3;
-    private static final int MAX_POSTS = 55;
+    private static final int MAX_POSTS = 1;
 
 
     private final List<Post> posts = new ArrayList<>();
@@ -66,7 +66,9 @@ public class HabrParseExample {
                             .parseDataTimePublished(postTimeElement.attr("data-time_published"));
                 }
 
-                posts.add(new Post(postUrl, postTitle.text(), time, tags));
+                Element contentElement = postHtml.getElementById("post-content-body");
+
+                posts.add(new Post(postUrl, postTitle.text(), time, tags, contentElement.html()));
                 if (posts.size() >= MAX_POSTS) {
                     return;
                 }

@@ -13,4 +13,5 @@ public class Post {
     String header;
     Instant dateTime;
     List<String> tags;
+    String content;
 }
