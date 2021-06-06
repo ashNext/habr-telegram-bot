@@ -1,14 +1,12 @@
 package habr.telegram.bot.habrtelegrambot.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-
 import java.time.Instant;
 import java.util.List;
+import lombok.Value;
 
 @Value
-@AllArgsConstructor
 public class Post {
+
     String url;
     String header;
     Instant dateTime;

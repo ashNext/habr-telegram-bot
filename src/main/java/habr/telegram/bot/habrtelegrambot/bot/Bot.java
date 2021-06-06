@@ -1,17 +1,13 @@
 package habr.telegram.bot.habrtelegrambot.bot;
 
-import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.GetUpdates;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.GetUpdatesResponse;
+import habr.telegram.bot.habrtelegrambot.tgmApi.TgmBot;
+import habr.telegram.bot.habrtelegrambot.tgmApi.response.ResponseUpdates;
+import habr.telegram.bot.habrtelegrambot.tgmApi.types.Message;
+import habr.telegram.bot.habrtelegrambot.tgmApi.types.Update;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @PropertySource("classpath:telegram.properties")
@@ -27,26 +23,24 @@ public class Bot {
 
     @Scheduled(fixedDelay = 1000)
     public void test() {
-        TelegramBot bot = new TelegramBot(botToken);
 
-        GetUpdates getUpdates = new GetUpdates().limit(100).offset(updateId + 1).timeout(0);
+        TgmBot tgmBot = new TgmBot(botToken);
 
-        GetUpdatesResponse updatesResponse = bot.execute(getUpdates);
-        List<Update> updates = updatesResponse.updates();
+        ResponseUpdates responseUpdates = tgmBot.getUpdates(updateId + 1, 100);
 
-        for (Update update : updates) {
-            Message message = update.message();
-            updateId = update.updateId();
-            long chatId = message.chat().id();
+        for (Update update : responseUpdates.getResult()) {
+            Message message = update.getMessage();
+            int chatId = message.getChat().getId();
+            updateId = update.getUpdateId();
 
-            String msg = "Help me, " + message.chat().firstName();
-            if (message.text().equalsIgnoreCase("/start")) {
-                msg = "Hi, " + message.chat().firstName() + "!";
+            String firstName = message.getChat().getFirstName();
+            String msg = "Help me, " + firstName;
+            if (message.getText().equalsIgnoreCase("/start")) {
+                msg = "Hi, " + firstName + "!";
             }
+            msg = msg + " - resp on updateId=" + updateId + " and text=" + message.getText();
 
-            bot.execute(new SendMessage(chatId, msg));
+            tgmBot.sendMessage(chatId, msg);
         }
     }
-
-
 }
