@@ -1,17 +1,16 @@
 package habr.telegram.bot.habrtelegrambot.tgmApi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import habr.telegram.bot.habrtelegrambot.tgmApi.exception.TgmResponseException;
 import habr.telegram.bot.habrtelegrambot.tgmApi.response.ResponseMessage;
 import habr.telegram.bot.habrtelegrambot.tgmApi.response.ResponseUpdates;
+import habr.telegram.bot.habrtelegrambot.tgmApi.response.TgmResponse;
+import okhttp3.*;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import okhttp3.Call;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class TgmBot {
 
@@ -42,33 +41,37 @@ public class TgmBot {
         return client.newCall(request);
     }
 
-    public ResponseUpdates getUpdates(int offest, int limit) {
-        Call call = getCall("getUpdates",
-                Map.of("offset", String.valueOf(offest), "limit", String.valueOf(limit)));
-
-        ResponseUpdates result = null;
-
-        try (Response response = call.execute()) {
-            result = mapper.readValue(Objects.requireNonNull(response.body()).string(), ResponseUpdates.class);
+    private <T extends TgmResponse> T readJsonValue(String json, Class<T> clazz) {
+        try {
+            return mapper.readValue(json, clazz);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalArgumentException("Invalid read from JSON:\n'" + json + "'", e);
         }
+    }
 
-        return result;
+    private <T extends TgmResponse> T getResponse(Call call, Class<T> clazz) {
+        try (Response response = call.execute()) {
+            T result = readJsonValue(Objects.requireNonNull(response.body()).string(), clazz);
+            if (!result.isOk()) {
+                throw new TgmResponseException(result);
+            }
+            return result;
+        } catch (IOException e) {
+            throw new IllegalCallerException("Invalid call: " + e);
+        }
+    }
+
+    public ResponseUpdates getUpdates(int offset, int limit) {
+        Call call = getCall("getUpdates",
+                Map.of("offset", String.valueOf(offset), "limit", String.valueOf(limit)));
+
+        return getResponse(call, ResponseUpdates.class);
     }
 
     public ResponseMessage sendMessage(int chatId, String text) {
         Call call = getCall("sendMessage",
                 Map.of("chat_id", String.valueOf(chatId), "text", text));
 
-        ResponseMessage result = null;
-
-        try (Response response = call.execute()) {
-            result = mapper.readValue(Objects.requireNonNull(response.body()).string(), ResponseMessage.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return result;
+        return getResponse(call, ResponseMessage.class);
     }
 }

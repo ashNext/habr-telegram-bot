@@ -9,7 +9,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class ResponseUpdates extends Response {
+public class ResponseUpdates extends TgmResponse {
 
     private List<Update> result;
 }

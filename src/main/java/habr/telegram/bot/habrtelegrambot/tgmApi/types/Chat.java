@@ -1,7 +1,6 @@
 package habr.telegram.bot.habrtelegrambot.tgmApi.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -9,7 +8,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class Chat implements Serializable {
+public class Chat {
 
     private Integer id;
 
