@@ -10,21 +10,18 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-@PropertySource("classpath:telegram.properties")
 public class Bot {
-
-    @Value("${bot.name}")
-    private String botName;
-
-    @Value("${bot.token}")
-    private String botToken;
 
     private int updateId = 0;
 
+    private final TgmBot tgmBot;
+
+    public Bot(TgmBot tgmBot) {
+        this.tgmBot = tgmBot;
+    }
+
     @Scheduled(fixedDelay = 1000)
     public void test() {
-
-        TgmBot tgmBot = new TgmBot(botToken);
 
         ResponseUpdates responseUpdates = tgmBot.getUpdates(updateId + 1, 100);
 

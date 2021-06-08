@@ -23,8 +23,8 @@ public class TgmBot {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public TgmBot(String botToken) {
-        client = new OkHttpClient();
+    public TgmBot(String botToken, OkHttpClient okHttpClient) {
+        client = okHttpClient;
         url = TGM_URL_API + "/bot" + botToken;
     }
 
