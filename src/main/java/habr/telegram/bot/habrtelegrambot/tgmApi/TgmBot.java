@@ -1,16 +1,21 @@
 package habr.telegram.bot.habrtelegrambot.tgmApi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import habr.telegram.bot.habrtelegrambot.tgmApi.exception.TgmResponseException;
 import habr.telegram.bot.habrtelegrambot.tgmApi.response.ResponseMessage;
 import habr.telegram.bot.habrtelegrambot.tgmApi.response.ResponseUpdates;
 import habr.telegram.bot.habrtelegrambot.tgmApi.response.TgmResponse;
-import okhttp3.*;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
+import okhttp3.Call;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TgmBot {
 
@@ -21,6 +26,8 @@ public class TgmBot {
     private final String url;
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public TgmBot(String botToken, OkHttpClient okHttpClient) {
         client = okHttpClient;
@@ -41,34 +48,46 @@ public class TgmBot {
         return client.newCall(request);
     }
 
-    private <T extends TgmResponse> T readJsonValue(String json, Class<T> clazz) {
+    private <T extends TgmResponse> Optional<T> readJsonValue(String json, Class<T> clazz) {
         try {
-            return mapper.readValue(json, clazz);
+            return Optional.of(mapper.readValue(json, clazz));
         } catch (IOException e) {
-            throw new IllegalArgumentException("Invalid read from JSON:\n'" + json + "'", e);
+            log.error("Invalid read from JSON:\n'" + json + "'", e);
+            return Optional.empty();
         }
     }
 
-    private <T extends TgmResponse> T getResponse(Call call, Class<T> clazz) {
+    private <T extends TgmResponse> Optional<T> getResponse(Call call, Class<T> clazz) {
         try (Response response = call.execute()) {
-            T result = readJsonValue(Objects.requireNonNull(response.body()).string(), clazz);
-            if (!result.isOk()) {
-                throw new TgmResponseException(result);
+            Optional<T> optResponse = readJsonValue(Objects.requireNonNull(response.body()).string(), clazz);
+
+            if (optResponse.isPresent()) {
+                if (optResponse.get().isOk()) {
+                    return optResponse;
+                } else {
+                    log.error("Error getting response by url={}:\n error_code={}, description={}",
+                            call.request().url(),
+                            optResponse.get().getErrorCode(),
+                            optResponse.get().getDescription());
+                    return Optional.empty();
+                }
+            } else {
+                return Optional.empty();
             }
-            return result;
         } catch (IOException e) {
-            throw new IllegalCallerException("Invalid call: " + e);
+            log.error("Invalid call: ", e);
+            return Optional.empty();
         }
     }
 
-    public ResponseUpdates getUpdates(int offset, int limit) {
+    public Optional<ResponseUpdates> getUpdates(int offset, int limit) {
         Call call = getCall("getUpdates",
                 Map.of("offset", String.valueOf(offset), "limit", String.valueOf(limit)));
 
         return getResponse(call, ResponseUpdates.class);
     }
 
-    public ResponseMessage sendMessage(int chatId, String text) {
+    public Optional<ResponseMessage> sendMessage(int chatId, String text) {
         Call call = getCall("sendMessage",
                 Map.of("chat_id", String.valueOf(chatId), "text", text));
 
