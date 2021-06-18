@@ -1,38 +1,20 @@
 Configutation:
 
-  Properties:
-    Property:
-      name: log-path
-      value: "./logs"
-
   Appenders:
     Console:
       name: CONSOLE
       target: SYSTEM_OUT
       PatternLayout:
         Pattern: "%clr{%d{ISO8601}}{faint} %clr{%-5p} %clr{[%c{3}]}{cyan} [%t] %clr{:}{faint} %m%n%xwEx"
-    RollingFile:
-      - name: APPLICATION
-        fileName: ${log-path}/telegram-bot.log
-        filePattern: "${log-path}/$${date:yyyy-MM}_archive/telegram-bot.log.%d{yyyy-MM-dd}-%i.gz"
-        PatternLayout:
-          Pattern: "%d{ISO8601} %-5p [%c{3}] [%t] %m%n"
-        Policies:
-          SizeBasedTriggeringPolicy:
-            size: 1 MB
-        DefaultRollOverStrategy:
-          max: 100
 
   Loggers:
     Root:
       level: info
       AppenderRef:
         - ref: CONSOLE
-        - ref: APPLICATION
     Logger:
-      - name: habr.telegram.bot.habrtelegrambot.telegram
+      - name: ashnext.telegram
         additivity: false
         level: debug
         AppenderRef:
           - ref: CONSOLE
-          - ref: APPLICATION
