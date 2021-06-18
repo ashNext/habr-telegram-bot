@@ -1,5 +1,7 @@
 package ashnext.telegram.tasks;
 
+import ashnext.model.UserEntity;
+import ashnext.service.UserService;
 import ashnext.telegram.service.TgmBotService;
 import ashnext.telegram.api.TgmBot;
 import ashnext.telegram.api.response.ResponseUpdates;
@@ -16,8 +18,11 @@ public class UpdateTask {
 
     private final TgmBot tgmBot;
 
-    public UpdateTask(TgmBotService tgmBotService) {
+    private final UserService userService;
+
+    public UpdateTask(TgmBotService tgmBotService, UserService userService) {
         this.tgmBot = tgmBotService.getTgmBot();
+        this.userService = userService;
     }
 
     @Scheduled(fixedDelay = 1000)
@@ -33,7 +38,8 @@ public class UpdateTask {
                 String firstName = message.getChat().getFirstName();
                 String msg = "Help me, " + firstName;
                 if (message.getText().equalsIgnoreCase("/start")) {
-                    msg = "Hi, " + firstName + "!";
+                    UserEntity user = userService.create(new UserEntity( message.getUser().getId()));
+                    msg = String.format("Hi, %s (id=%d) !", firstName, user.getUserId());
                 }
                 msg = msg + " - resp on updateId=" + updateId + " and text=" + message.getText();
 
