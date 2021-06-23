@@ -1,15 +1,20 @@
 package ashnext.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
-@Getter
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Getter
+@EqualsAndHashCode
+@ToString
 abstract class BaseEntity {
 
     @Id
     @GeneratedValue
-    private Long id;
+    protected UUID id;
 }

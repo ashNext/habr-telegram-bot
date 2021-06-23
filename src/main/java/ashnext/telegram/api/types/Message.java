@@ -14,7 +14,7 @@ public class Message {
     private Integer messageId;
 
     @JsonProperty("from")
-    private User user;
+    private TgmUser tgmUser;
 
     private Integer date;
 

@@ -1,6 +1,6 @@
 package ashnext.telegram.tasks;
 
-import ashnext.model.UserEntity;
+import ashnext.model.User;
 import ashnext.service.UserService;
 import ashnext.telegram.service.TgmBotService;
 import ashnext.telegram.api.TgmBot;
@@ -38,8 +38,8 @@ public class UpdateTask {
                 String firstName = message.getChat().getFirstName();
                 String msg = "Help me, " + firstName;
                 if (message.getText().equalsIgnoreCase("/start")) {
-                    UserEntity user = userService.create(new UserEntity( message.getUser().getId()));
-                    msg = String.format("Hi, %s (id=%d) !", firstName, user.getUserId());
+                    User user = userService.create(new User( message.getTgmUser().getId()));
+                    msg = String.format("Hi, %s (id=%d) !", firstName, user.getTelegramUserId());
                 }
                 msg = msg + " - resp on updateId=" + updateId + " and text=" + message.getText();
 
