@@ -4,10 +4,7 @@ import ashnext.model.User;
 import ashnext.service.UserService;
 import ashnext.telegram.api.TgmBot;
 import ashnext.telegram.api.response.ResponseUpdates;
-import ashnext.telegram.api.types.ChatMember;
-import ashnext.telegram.api.types.Message;
-import ashnext.telegram.api.types.TgmUser;
-import ashnext.telegram.api.types.Update;
+import ashnext.telegram.api.types.*;
 import ashnext.telegram.service.TgmBotService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +29,60 @@ public class UpdateTask {
         this.userService = userService;
     }
 
+    public void changeUserStatus(ChatMemberUpdated chatMemberUpdated) {
+        TgmUser tgmUser = chatMemberUpdated.getUser();
+        User user = userService.getByTelegramUserId(tgmUser.getId());
+
+        if (user == null) {
+            log.warn("Changing the user's status is not possible because user with id={} is not registered",
+                    tgmUser.getId());
+        } else {
+            ChatMember oldChatMember = chatMemberUpdated.getOldChatMember();
+            ChatMember newChatMember = chatMemberUpdated.getNewChatMember();
+
+            if (oldChatMember.getStatus().equalsIgnoreCase("member")
+                    && newChatMember.getStatus().equalsIgnoreCase("kicked")
+                    && user.isActive()) {
+                userService.setActive(user, false);
+            } else if (oldChatMember.getStatus().equalsIgnoreCase("kicked")
+                    && newChatMember.getStatus().equalsIgnoreCase("member")
+                    && !user.isActive()) {
+                userService.setActive(user, true);
+            }
+        }
+    }
+
+    public void processMessage(Message message) {
+        String firstName = message.getTgmUser().getFirstName();
+        String msg;
+        User user = userService.getByTelegramUserId(message.getTgmUser().getId());
+        if (message.getText().equalsIgnoreCase("/start")) {
+            if (user != null) {
+                msg = String.format("Welcome back, %s (id=%d) !", firstName, user.getTelegramUserId());
+            } else {
+                user = userService.create(new User(message.getTgmUser().getId()));
+                msg = String.format("Hi, %s (id=%d) !", firstName, user.getTelegramUserId());
+            }
+        } else {
+            if (user == null) {
+                msg = "You are not registered. Go to /start";
+                log.warn("User with id={} is not registered", message.getTgmUser().getId());
+            } else {
+                msg = "Help me, " + firstName;
+            }
+        }
+
+        tgmBot.sendMessage(message.getChat().getId(), msg);
+    }
+
+    public void defineUpdate(Update update) {
+        if (update.getMyChatMember() != null) {
+            changeUserStatus(update.getMyChatMember());
+        } else if (update.getMessage() != null) {
+            processMessage(update.getMessage());
+        }
+    }
+
     @Scheduled(fixedDelay = 1000)
     public void update() {
         Optional<ResponseUpdates> optResponseUpdates = tgmBot.getUpdates(updateId + 1, 100);
@@ -40,49 +91,7 @@ public class UpdateTask {
             for (Update update : responseUpdates.getResult()) {
                 updateId = update.getUpdateId();
 
-                if (update.getMyChatMember() != null) {
-                    TgmUser tgmUser = update.getMyChatMember().getUser();
-                    User user = userService.getByTelegramUserId(tgmUser.getId());
-                    if (user == null) {
-                        log.error("Changing the user's status is not possible because user with id={} is not registered",
-                                tgmUser.getId());
-                        continue;
-                    }
-
-                    ChatMember oldChatMember = update.getMyChatMember().getOldChatMember();
-                    ChatMember newChatMember = update.getMyChatMember().getNewChatMember();
-
-                    if (oldChatMember.getStatus().equalsIgnoreCase("member")
-                            && newChatMember.getStatus().equalsIgnoreCase("kicked")
-                            && user.isActive()) {
-                        userService.setActive(user, false);
-                    } else if (oldChatMember.getStatus().equalsIgnoreCase("kicked")
-                            && newChatMember.getStatus().equalsIgnoreCase("member")
-                            && !user.isActive()) {
-                        userService.setActive(user, true);
-                    }
-                }
-
-                if (update.getMessage() != null) {
-                    Message message = update.getMessage();
-                    int chatId = message.getChat().getId();
-
-                    String firstName = message.getChat().getFirstName();
-                    String msg = "Help me, " + firstName;
-                    if (message.getText().equalsIgnoreCase("/start")) {
-                        User user = userService.getByTelegramUserId(message.getTgmUser().getId());
-                        if (user != null && user.isActive()) {
-                            msg = String.format("Welcome back, %s (id=%d) !", firstName, user.getTelegramUserId());
-                        } else {
-                            user = userService.create(new User(message.getTgmUser().getId()));
-                            msg = String.format("Hi, %s (id=%d) !", firstName, user.getTelegramUserId());
-                        }
-                    }
-                    msg = msg + " - resp on updateId=" + updateId + " and text=" + message.getText();
-
-                    tgmBot.sendMessage(chatId, msg);
-                }
-
+                defineUpdate(update);
             }
         });
     }
