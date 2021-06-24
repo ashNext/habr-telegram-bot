@@ -14,4 +14,7 @@ public class Update {
     private Integer updateId;
 
     private Message message;
+
+    @JsonProperty("my_chat_member")
+    private ChatMemberUpdated myChatMember;
 }

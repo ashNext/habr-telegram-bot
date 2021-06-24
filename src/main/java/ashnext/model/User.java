@@ -20,11 +20,19 @@ public class User extends BaseEntity {
     @Column(unique = true, nullable = false)
     private Integer telegramUserId;
 
+    @Column(nullable = false, columnDefinition = "bool default true")
+    private boolean active;
+
+    public User(Integer telegramUserId) {
+        this.telegramUserId = telegramUserId;
+    }
+
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
                 "telegramUserId=" + telegramUserId +
+                "active=" + active +
                 '}';
     }
 }

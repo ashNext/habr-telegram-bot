@@ -14,4 +14,13 @@ public class UserService {
     public User create(User user) {
         return userRepository.save(user);
     }
+
+    public User getByTelegramUserId(Integer telegramUserId){
+        return userRepository.findByTelegramUserId(telegramUserId);
+    }
+
+    public void setActive(User user, boolean active){
+        user.setActive(active);
+        userRepository.save(user);
+    }
 }
