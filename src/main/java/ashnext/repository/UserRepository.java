@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    User findByTelegramUserId(Integer telegramUserId);
+    User findByTelegramUserId(Long telegramUserId);
 }

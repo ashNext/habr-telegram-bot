@@ -10,7 +10,7 @@ import lombok.ToString;
 @ToString
 public class TgmUser {
 
-    private Integer id;
+    private Long id;
 
     @JsonProperty("is_bot")
     private boolean bot;

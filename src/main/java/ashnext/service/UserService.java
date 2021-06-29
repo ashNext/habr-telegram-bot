@@ -15,7 +15,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User getByTelegramUserId(Integer telegramUserId){
+    public User getByTelegramUserId(Long telegramUserId){
         return userRepository.findByTelegramUserId(telegramUserId);
     }
 

@@ -10,14 +10,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class TgmBot {
 
     private final static String TGM_URL_API = "https://api.telegram.org";
@@ -27,8 +28,6 @@ public class TgmBot {
     private final String url;
 
     private final ObjectMapper mapper = new ObjectMapper();
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public TgmBot(String botToken, OkHttpClient okHttpClient) {
         client = okHttpClient;

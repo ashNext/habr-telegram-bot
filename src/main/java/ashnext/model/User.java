@@ -18,12 +18,12 @@ import javax.persistence.Table;
 public class User extends BaseEntity {
 
     @Column(unique = true, nullable = false)
-    private Integer telegramUserId;
+    private Long telegramUserId;
 
     @Column(nullable = false, columnDefinition = "bool default true")
     private boolean active;
 
-    public User(Integer telegramUserId) {
+    public User(Long telegramUserId) {
         this.telegramUserId = telegramUserId;
     }
 
