@@ -20,14 +20,18 @@ public class User extends BaseEntity {
     @Column(unique = true, nullable = false)
     private Long telegramUserId;
 
+    @Column(nullable = false)
+    private Integer telegramChatId;
+
     @Column(nullable = false, columnDefinition = "bool default true")
     private boolean active;
 
     @Column(nullable = false, columnDefinition = "bool default false")
     private boolean subscription;
 
-    public User(Long telegramUserId) {
+    public User(Long telegramUserId, Integer telegramChatId) {
         this.telegramUserId = telegramUserId;
+        this.telegramChatId = telegramChatId;
     }
 
     @Override

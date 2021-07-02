@@ -27,7 +27,7 @@ public class UpdateHandlingService {
                 msg = String.format("Welcome back, %s!", firstName);
                 log.info("Registered user (tgmUserId={}) went to /start", tgmUserId);
             } else {
-                user = userService.create(new User(tgmUserId));
+                user = userService.create(new User(tgmUserId, message.getChat().getId()));
                 msg = String.format("Hi, %s!", firstName);
                 log.info("Added new user ({})", user);
             }
