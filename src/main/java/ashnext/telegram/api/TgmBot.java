@@ -1,27 +1,31 @@
 package ashnext.telegram.api;
 
+import ashnext.telegram.api.response.ResponseBoolean;
 import ashnext.telegram.api.response.ResponseMessage;
 import ashnext.telegram.api.response.ResponseUpdates;
 import ashnext.telegram.api.response.TgmResponse;
+import ashnext.telegram.api.types.BotCommand;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
 @Slf4j
 public class TgmBot {
 
     private final static String TGM_URL_API = "https://api.telegram.org";
+
+    private final static List<BotCommand> COMMANDS_LIST = List.of(
+            new BotCommand("/sub", "Subscribe to articles"),
+            new BotCommand("/unsub", "Cancel subscription")
+    );
 
     private final OkHttpClient client;
 
@@ -32,6 +36,7 @@ public class TgmBot {
     public TgmBot(String botToken, OkHttpClient okHttpClient) {
         client = okHttpClient;
         url = TGM_URL_API + "/bot" + botToken;
+        setMyCommands(COMMANDS_LIST);
     }
 
     private Call getCall(String urlMethod, Map<String, String> params) {
@@ -92,5 +97,18 @@ public class TgmBot {
                 Map.of("chat_id", String.valueOf(chatId), "text", text));
 
         return getResponse(call, ResponseMessage.class);
+    }
+
+    private Optional<ResponseBoolean> setMyCommands(List<BotCommand> commands) {
+        try {
+            Call call = getCall("setMyCommands",
+                    Map.of("commands", mapper.writeValueAsString(commands)));
+            return getResponse(call, ResponseBoolean.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            log.error("Invalid write to JSON", e);
+        }
+
+        return Optional.empty();
     }
 }
