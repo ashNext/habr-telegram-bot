@@ -23,6 +23,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, columnDefinition = "bool default true")
     private boolean active;
 
+    @Column(nullable = false, columnDefinition = "bool default false")
+    private boolean subscription;
+
     public User(Long telegramUserId) {
         this.telegramUserId = telegramUserId;
     }
@@ -31,8 +34,9 @@ public class User extends BaseEntity {
     public String toString() {
         return "User{" +
                 "id=" + id +
-                "telegramUserId=" + telegramUserId +
-                "active=" + active +
+                ", telegramUserId=" + telegramUserId +
+                ", active=" + active +
+                ", subscription=" + subscription +
                 '}';
     }
 }

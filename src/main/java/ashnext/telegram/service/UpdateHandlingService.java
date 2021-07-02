@@ -35,6 +35,14 @@ public class UpdateHandlingService {
             if (user == null) {
                 msg = "You are not registered. Go to /start";
                 log.info("User with tgmUserId={} is not registered", tgmUserId);
+            } else if (message.getText().equalsIgnoreCase("/sub")) {
+                userService.subscribe(user);
+                msg = "You subscribed";
+                log.info("User ({}) subscribed", user);
+            } else if (message.getText().equalsIgnoreCase("/unsub")) {
+                userService.unsubscribe(user);
+                msg = "You unsubscribed";
+                log.info("User ({}) unsubscribed", user);
             } else {
                 msg = "I don't understand yet ((";
                 log.warn("Unprocessed user (tgmUserId={}) message '{}'", tgmUserId, message.getText());
