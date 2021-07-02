@@ -12,14 +12,15 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User create(User user) {
+        user.setActive(true);
         return userRepository.save(user);
     }
 
-    public User getByTelegramUserId(Long telegramUserId){
+    public User getByTelegramUserId(Long telegramUserId) {
         return userRepository.findByTelegramUserId(telegramUserId);
     }
 
-    public void setActive(User user, boolean active){
+    public void setActive(User user, boolean active) {
         user.setActive(active);
         userRepository.save(user);
     }

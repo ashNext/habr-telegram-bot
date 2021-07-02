@@ -5,7 +5,6 @@ import ashnext.service.UserService;
 import ashnext.telegram.api.types.ChatMember;
 import ashnext.telegram.api.types.ChatMemberUpdated;
 import ashnext.telegram.api.types.Message;
-import ashnext.telegram.api.types.TgmUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,22 +17,27 @@ public class UpdateHandlingService {
     private final UserService userService;
 
     public String processMessage(Message message) {
-        String firstName = message.getTgmUser().getFirstName();
+        final String firstName = message.getTgmUser().getFirstName();
+        final Long tgmUserId = message.getTgmUser().getId();
+
         String msg;
-        User user = userService.getByTelegramUserId(message.getTgmUser().getId());
+        User user = userService.getByTelegramUserId(tgmUserId);
         if (message.getText().equalsIgnoreCase("/start")) {
             if (user != null) {
-                msg = String.format("Welcome back, %s (id=%d) !", firstName, user.getTelegramUserId());
+                msg = String.format("Welcome back, %s!", firstName);
+                log.info("Registered user (tgmUserId={}) went to /start", tgmUserId);
             } else {
-                user = userService.create(new User(message.getTgmUser().getId()));
-                msg = String.format("Hi, %s (id=%d) !", firstName, user.getTelegramUserId());
+                user = userService.create(new User(tgmUserId));
+                msg = String.format("Hi, %s!", firstName);
+                log.info("Added new user ({})", user);
             }
         } else {
             if (user == null) {
                 msg = "You are not registered. Go to /start";
-                log.warn("User with id={} is not registered", message.getTgmUser().getId());
+                log.info("User with tgmUserId={} is not registered", tgmUserId);
             } else {
-                msg = "Help me, " + firstName;
+                msg = "I don't understand yet ((";
+                log.warn("Unprocessed user (tgmUserId={}) message '{}'", tgmUserId, message.getText());
             }
         }
 
@@ -41,12 +45,11 @@ public class UpdateHandlingService {
     }
 
     public void changeUserStatus(ChatMemberUpdated chatMemberUpdated) {
-        TgmUser tgmUser = chatMemberUpdated.getUser();
-        User user = userService.getByTelegramUserId(tgmUser.getId());
+        final Long tgmUserId = chatMemberUpdated.getUser().getId();
+        final User user = userService.getByTelegramUserId(tgmUserId);
 
         if (user == null) {
-            log.warn("Changing the user's status is not possible because user with id={} is not registered",
-                    tgmUser.getId());
+            log.warn("Changing the user's status is not possible because user with id={} is not registered", tgmUserId);
         } else {
             ChatMember oldChatMember = chatMemberUpdated.getOldChatMember();
             ChatMember newChatMember = chatMemberUpdated.getNewChatMember();
@@ -55,10 +58,12 @@ public class UpdateHandlingService {
                     && newChatMember.getStatus().equalsIgnoreCase("kicked")
                     && user.isActive()) {
                 userService.setActive(user, false);
+                log.info("User (tgmUserId={}) disabled", tgmUserId);
             } else if (oldChatMember.getStatus().equalsIgnoreCase("kicked")
                     && newChatMember.getStatus().equalsIgnoreCase("member")
                     && !user.isActive()) {
                 userService.setActive(user, true);
+                log.info("User (tgmUserId={}) enabled", tgmUserId);
             }
         }
     }
