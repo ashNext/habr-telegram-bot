@@ -19,14 +19,13 @@ public class NewsletterTask {
 
     private final TgmBotService tgmBotService;
 
-    @Scheduled(fixedDelay = 60000)
+    @Scheduled(fixedDelay = 120*60000)
     public void newsletter() {
-        parseHabrService.getNewestPost()
-                .ifPresent(
-                        post -> userService.getAllActiveAndSubscribe()
-                                .forEach(
-                                        user -> tgmBotService.getTgmBot()
-                                                .sendMessage(user.getTelegramChatId(), post.getUrl())));
+        parseHabrService.getNewPosts().forEach(
+                post -> userService.getAllActiveAndSubscribe().forEach(
+                        user -> tgmBotService.getTgmBot().sendMessage(user.getTelegramChatId(), post.getUrl())
+                )
+        );
     }
 
 }
