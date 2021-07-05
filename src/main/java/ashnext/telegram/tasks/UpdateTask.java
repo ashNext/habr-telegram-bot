@@ -28,6 +28,12 @@ public class UpdateTask {
         } else if (update.getMessage() != null) {
             String msg = updateHandlingService.processMessage(update.getMessage());
             tgmBotService.getTgmBot().sendMessage(update.getMessage().getChat().getId(), msg);
+        } else if (update.getCallbackQuery() != null) {
+            if (update.getCallbackQuery().getData().equalsIgnoreCase("delete")) {
+                tgmBotService.getTgmBot().deleteMessage(
+                        update.getCallbackQuery().getMessage().getChat().getId(),
+                        update.getCallbackQuery().getMessage().getMessageId());
+            }
         }
     }
 

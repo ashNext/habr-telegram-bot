@@ -1,6 +1,8 @@
 package ashnext.telegram.tasks;
 
 import ashnext.service.UserService;
+import ashnext.telegram.api.types.InlineKeyboardButton;
+import ashnext.telegram.api.types.InlineKeyboardMarkup;
 import ashnext.telegram.service.ParseHabrService;
 import ashnext.telegram.service.TgmBotService;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +21,25 @@ public class NewsletterTask {
 
     private final TgmBotService tgmBotService;
 
+    private final InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(
+            new InlineKeyboardButton[][]
+                    {
+                            {
+                                    new InlineKeyboardButton("Read later", "11"),
+                                    new InlineKeyboardButton("Not interested", "delete"),
+                                    new InlineKeyboardButton("Not instant", "33")
+                            }
+                    }
+    );
+
     @Scheduled(fixedDelayString = "${bot.scheduled.new-posts}")
     public void newsletter() {
         parseHabrService.getNewPosts().forEach(
                 post -> userService.getAllActiveAndSubscribe().forEach(
-                        user -> tgmBotService.getTgmBot().sendMessage(user.getTelegramChatId(), post.getUrl())
+                        user -> tgmBotService.getTgmBot().sendMessage(
+                                user.getTelegramChatId(),
+                                post.getUrl(),
+                                inlineKeyboardMarkup)
                 )
         );
     }

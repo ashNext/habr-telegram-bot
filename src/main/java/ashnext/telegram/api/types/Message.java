@@ -23,4 +23,7 @@ public class Message {
     private String text;
 
     private MessageEntity[] entities;
+
+    @JsonProperty("reply_markup")
+    private InlineKeyboardMarkup replyMarkup;
 }

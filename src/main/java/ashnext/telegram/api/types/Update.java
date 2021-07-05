@@ -17,4 +17,7 @@ public class Update {
 
     @JsonProperty("my_chat_member")
     private ChatMemberUpdated myChatMember;
+
+    @JsonProperty("callback_query")
+    private CallbackQuery callbackQuery;
 }

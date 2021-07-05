@@ -5,6 +5,7 @@ import ashnext.telegram.api.response.ResponseMessage;
 import ashnext.telegram.api.response.ResponseUpdates;
 import ashnext.telegram.api.response.TgmResponse;
 import ashnext.telegram.api.types.BotCommand;
+import ashnext.telegram.api.types.InlineKeyboardMarkup;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -99,13 +100,31 @@ public class TgmBot {
         return getResponse(call, ResponseMessage.class);
     }
 
+    public Optional<ResponseMessage> sendMessage(int chatId, String text, InlineKeyboardMarkup replyMarkup) {
+        try {
+            Call call = getCall("sendMessage",
+                    Map.of("chat_id", String.valueOf(chatId),
+                            "text", text,
+                            "reply_markup", mapper.writeValueAsString(replyMarkup)));
+            return getResponse(call, ResponseMessage.class);
+        } catch (JsonProcessingException e) {
+            log.error("Invalid write to JSON", e);
+        }
+        return Optional.empty();
+    }
+
+    public Optional<ResponseBoolean> deleteMessage(int chatId, int messageId) {
+        Call call = getCall("deleteMessage",
+                Map.of("chat_id", String.valueOf(chatId), "message_id", String.valueOf(messageId)));
+        return getResponse(call, ResponseBoolean.class);
+    }
+
     private Optional<ResponseBoolean> setMyCommands(List<BotCommand> commands) {
         try {
             Call call = getCall("setMyCommands",
                     Map.of("commands", mapper.writeValueAsString(commands)));
             return getResponse(call, ResponseBoolean.class);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
             log.error("Invalid write to JSON", e);
         }
 
