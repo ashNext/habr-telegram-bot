@@ -25,7 +25,8 @@ public class TgmBot {
 
     private final static List<BotCommand> COMMANDS_LIST = List.of(
             new BotCommand("/sub", "Subscribe to articles"),
-            new BotCommand("/unsub", "Cancel subscription")
+            new BotCommand("/unsub", "Cancel subscription"),
+            new BotCommand("/rlater", "Read Later List")
     );
 
     private final OkHttpClient client;

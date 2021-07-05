@@ -84,7 +84,7 @@ public class ParseHabrService {
         return Optional.empty();
     }
 
-    private Optional<Post> parseAndGetPost(String postUrl) throws IOException {
+    public Optional<Post> parseAndGetPost(String postUrl) throws IOException {
         Document postHtml = Jsoup.connect(postUrl).get();
 
         Elements innerPostTitles = postHtml.getElementsByClass("post__title-text");

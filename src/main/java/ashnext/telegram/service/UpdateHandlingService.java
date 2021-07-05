@@ -1,13 +1,18 @@
 package ashnext.telegram.service;
 
+import ashnext.model.ReadLater;
 import ashnext.model.User;
+import ashnext.parse.model.Post;
+import ashnext.service.ReadLaterService;
 import ashnext.service.UserService;
-import ashnext.telegram.api.types.ChatMember;
-import ashnext.telegram.api.types.ChatMemberUpdated;
-import ashnext.telegram.api.types.Message;
+import ashnext.telegram.api.types.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -15,6 +20,10 @@ import org.springframework.stereotype.Service;
 public class UpdateHandlingService {
 
     private final UserService userService;
+
+    private final ReadLaterService readLaterService;
+
+    private final ParseHabrService parseHabrService;
 
     public String processMessage(Message message) {
         final String firstName = message.getTgmUser().getFirstName();
@@ -74,5 +83,45 @@ public class UpdateHandlingService {
                 log.info("User (tgmUserId={}) enabled", tgmUserId);
             }
         }
+    }
+
+    public String kb(CallbackQuery callbackQuery) {
+        final Long tgmUserId = callbackQuery.getUser().getId();
+        final User user = userService.getByTelegramUserId(tgmUserId);
+
+        if (callbackQuery.getData().equalsIgnoreCase("read-later")) {
+            String postUrl = callbackQuery.getMessage().getText();
+
+            try {
+                Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
+                if (optPost.isPresent()) {
+                    readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader()));
+                    return "Added for reading later:\n" + optPost.get().getHeader();
+                }
+            } catch (IOException e) {
+                log.error("Error in kb", e);
+            }
+        }
+
+        return null;
+    }
+
+    public InlineKeyboardMarkup getReadLaterButtons(Message message) {
+        final Long tgmUserId = message.getTgmUser().getId();
+        User user = userService.getByTelegramUserId(tgmUserId);
+
+        List<ReadLater> readLaterList = readLaterService.getAllByUser(user);
+        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[readLaterList.size()][1];
+
+        for (int i = 0; i < readLaterList.size(); i++) {
+            InlineKeyboardButton button =
+                    new InlineKeyboardButton(
+                            readLaterList.get(i).getPostTitle(),
+                            readLaterList.get(i).getPostUrl(),
+                            "");
+            buttons[i][0] = button;
+        }
+
+        return new InlineKeyboardMarkup(buttons);
     }
 }

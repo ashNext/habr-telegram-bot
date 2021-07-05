@@ -25,9 +25,8 @@ public class NewsletterTask {
             new InlineKeyboardButton[][]
                     {
                             {
-                                    new InlineKeyboardButton("Read later", "11"),
-                                    new InlineKeyboardButton("Not interested", "delete"),
-                                    new InlineKeyboardButton("Not instant", "33")
+                                    new InlineKeyboardButton("Read later", "read-later", ""),
+                                    new InlineKeyboardButton("Not interested", "delete", "")
                             }
                     }
     );

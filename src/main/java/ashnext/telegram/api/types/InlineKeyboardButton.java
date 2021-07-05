@@ -14,4 +14,6 @@ public class InlineKeyboardButton {
 
     @JsonProperty("callback_data")
     private String callbackData;
+
+    private String url;
 }
