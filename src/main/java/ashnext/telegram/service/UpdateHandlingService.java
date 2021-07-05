@@ -5,14 +5,19 @@ import ashnext.model.User;
 import ashnext.parse.model.Post;
 import ashnext.service.ReadLaterService;
 import ashnext.service.UserService;
-import ashnext.telegram.api.types.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
+import ashnext.telegram.api.types.CallbackQuery;
+import ashnext.telegram.api.types.ChatMember;
+import ashnext.telegram.api.types.ChatMemberUpdated;
+import ashnext.telegram.api.types.InlineKeyboardButton;
+import ashnext.telegram.api.types.InlineKeyboardMarkup;
+import ashnext.telegram.api.types.Message;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -101,6 +106,18 @@ public class UpdateHandlingService {
             } catch (IOException e) {
                 log.error("Error in kb", e);
             }
+        } else if (callbackQuery.getData().startsWith("remove-read-later")) {
+            readLaterService.getAllByUserAndPostUrl(user, callbackQuery.getMessage().getText()).forEach(
+                    readLater -> readLaterService.delete(readLater.getId())
+            );
+            return "Remove from reading later";
+        } else if (callbackQuery.getData().startsWith("rl:")) {
+
+            Optional<ReadLater> readLater = readLaterService
+                    .getByUUID(UUID.fromString(callbackQuery.getData().substring(3)));
+            if (readLater.isPresent()) {
+                return readLater.get().getPostUrl();
+            }
         }
 
         return null;
@@ -117,10 +134,19 @@ public class UpdateHandlingService {
             InlineKeyboardButton button =
                     new InlineKeyboardButton(
                             readLaterList.get(i).getPostTitle(),
-                            readLaterList.get(i).getPostUrl(),
+                            "rl:" + readLaterList.get(i).getId(),
                             "");
             buttons[i][0] = button;
         }
+
+        return new InlineKeyboardMarkup(buttons);
+    }
+
+    public InlineKeyboardMarkup getButtonsForPostFromReadLater() {
+        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[][]{{
+                new InlineKeyboardButton("Remove from Read later", "remove-read-later", ""),
+                new InlineKeyboardButton("Not interested", "delete", "")
+        }};
 
         return new InlineKeyboardMarkup(buttons);
     }

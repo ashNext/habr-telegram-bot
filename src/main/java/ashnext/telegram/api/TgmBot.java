@@ -1,6 +1,7 @@
 package ashnext.telegram.api;
 
 import ashnext.telegram.api.response.ResponseBoolean;
+import ashnext.telegram.api.response.ResponseMessageId;
 import ashnext.telegram.api.response.ResponseMessage;
 import ashnext.telegram.api.response.ResponseUpdates;
 import ashnext.telegram.api.response.TgmResponse;
@@ -130,5 +131,31 @@ public class TgmBot {
         }
 
         return Optional.empty();
+    }
+
+    public Optional<ResponseBoolean> answerCallbackQuery(String callbackQueryId, String text) {
+        Call call = getCall("answerCallbackQuery",
+                Map.of("callback_query_id", callbackQueryId, "text", text));
+
+        return getResponse(call, ResponseBoolean.class);
+    }
+
+    public Optional<ResponseMessageId> copyMessage(int chatId, int fromChatId, int messageId, int replyToMessageId) {
+        Call call = getCall("copyMessage",
+                Map.of("chat_id", String.valueOf(chatId),
+                        "from_chat_id", String.valueOf(fromChatId),
+                        "message_id", String.valueOf(messageId),
+                        "reply_to_message_id", String.valueOf(replyToMessageId)));
+
+        return getResponse(call, ResponseMessageId.class);
+    }
+
+    public Optional<ResponseMessage> forwardMessage(int chatId, int fromChatId, int messageId) {
+        Call call = getCall("forwardMessage",
+                Map.of("chat_id", String.valueOf(chatId),
+                        "from_chat_id", String.valueOf(fromChatId),
+                        "message_id", String.valueOf(messageId)));
+
+        return getResponse(call, ResponseMessage.class);
     }
 }
