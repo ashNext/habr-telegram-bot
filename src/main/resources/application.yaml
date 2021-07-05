@@ -13,3 +13,10 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
+bot:
+  name: "HabrViewBot"
+  token: "1874857108:AAFSbnTJ8sADfORvJ4HSCnokT_i8D4cq6jg"
+  last-post-url: ""
+  scheduled:
+    update: 1000
+    new-posts: 60000

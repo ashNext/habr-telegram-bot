@@ -31,7 +31,7 @@ public class UpdateTask {
         }
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelayString = "${bot.scheduled.update}")
     public void update() {
         Optional<ResponseUpdates> optResponseUpdates =
                 tgmBotService.getTgmBot().getUpdates(updateId + 1, 100);

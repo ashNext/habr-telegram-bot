@@ -2,18 +2,20 @@ package ashnext.telegram.service;
 
 import ashnext.parse.model.Post;
 import ashnext.parse.util.DateTimeUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -22,7 +24,8 @@ public class ParseHabrService {
     private static final String SITE_URL = "https://habr.com";
     private Post lastPost = null;
 
-    private String lastPostUrl = "";
+    @Value("${bot.last-post-url}")
+    private String lastPostUrl;
 
     public List<Post> getNewPosts() {
         List<Post> newPosts = new LinkedList<>();

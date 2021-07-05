@@ -19,7 +19,7 @@ public class NewsletterTask {
 
     private final TgmBotService tgmBotService;
 
-    @Scheduled(fixedDelay = 120*60000)
+    @Scheduled(fixedDelayString = "${bot.scheduled.new-posts}")
     public void newsletter() {
         parseHabrService.getNewPosts().forEach(
                 post -> userService.getAllActiveAndSubscribe().forEach(

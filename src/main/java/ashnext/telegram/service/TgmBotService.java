@@ -1,15 +1,12 @@
 package ashnext.telegram.service;
 
-import ashnext.config.YamlPropertySourceFactory;
 import ashnext.telegram.api.TgmBot;
 import lombok.Getter;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 @Service
-@PropertySource(value = "classpath:telegram-"+"${spring.profiles.active:prod}"+".yaml", factory = YamlPropertySourceFactory.class)
 @Getter
 public class TgmBotService {
 
