@@ -20,6 +20,12 @@ public class Message {
 
     private Chat chat;
 
+    @JsonProperty("forward_from")
+    private TgmUser forwardFrom;
+
+    @JsonProperty("forward_date")
+    private Integer forwardDate;
+
     private String text;
 
     private MessageEntity[] entities;

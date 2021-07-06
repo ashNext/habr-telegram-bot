@@ -144,8 +144,8 @@ public class UpdateHandlingService {
 
     public InlineKeyboardMarkup getButtonsForPostFromReadLater() {
         InlineKeyboardButton[][] buttons = new InlineKeyboardButton[][]{{
-                new InlineKeyboardButton("Remove from Read later", "remove-read-later", ""),
-                new InlineKeyboardButton("Not interested", "delete", "")
+                new InlineKeyboardButton("\uD83D\uDCE4", "remove-read-later", ""),
+                new InlineKeyboardButton("\uD83D\uDDD1", "delete", "")
         }};
 
         return new InlineKeyboardMarkup(buttons);

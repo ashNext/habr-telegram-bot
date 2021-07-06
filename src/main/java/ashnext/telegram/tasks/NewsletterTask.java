@@ -22,13 +22,10 @@ public class NewsletterTask {
     private final TgmBotService tgmBotService;
 
     private final InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(
-            new InlineKeyboardButton[][]
-                    {
-                            {
-                                    new InlineKeyboardButton("Read later", "read-later", ""),
-                                    new InlineKeyboardButton("Not interested", "delete", "")
-                            }
-                    }
+            new InlineKeyboardButton[][]{{
+                    new InlineKeyboardButton("\uD83D\uDCE5", "read-later", ""),
+                    new InlineKeyboardButton("\uD83D\uDDD1", "delete", "")
+            }}
     );
 
     @Scheduled(fixedDelayString = "${bot.scheduled.new-posts}")
