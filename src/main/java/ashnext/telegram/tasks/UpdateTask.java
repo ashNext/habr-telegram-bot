@@ -5,11 +5,12 @@ import ashnext.telegram.api.types.InlineKeyboardMarkup;
 import ashnext.telegram.api.types.Update;
 import ashnext.telegram.service.TgmBotService;
 import ashnext.telegram.service.UpdateHandlingService;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -28,8 +29,13 @@ public class UpdateTask {
         } else if (update.getMessage() != null) {
             if (update.getMessage().getText().equalsIgnoreCase("/rlater")) {
                 InlineKeyboardMarkup buttons = updateHandlingService.getReadLaterButtons(update.getMessage());
+
+                String msg = "List Read later:";
+                if (buttons.getInlineKeyboard().length == 0) {
+                    msg = msg + " empty";
+                }
                 tgmBotService.getTgmBot().sendMessage(
-                        update.getMessage().getChat().getId(), "List Read later:", buttons);
+                        update.getMessage().getChat().getId(), msg, buttons);
             } else {
                 String msg = updateHandlingService.processMessage(update.getMessage());
                 tgmBotService.getTgmBot().sendMessage(update.getMessage().getChat().getId(), msg);

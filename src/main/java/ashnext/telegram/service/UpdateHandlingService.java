@@ -5,19 +5,15 @@ import ashnext.model.User;
 import ashnext.parse.model.Post;
 import ashnext.service.ReadLaterService;
 import ashnext.service.UserService;
-import ashnext.telegram.api.types.CallbackQuery;
-import ashnext.telegram.api.types.ChatMember;
-import ashnext.telegram.api.types.ChatMemberUpdated;
-import ashnext.telegram.api.types.InlineKeyboardButton;
-import ashnext.telegram.api.types.InlineKeyboardMarkup;
-import ashnext.telegram.api.types.Message;
+import ashnext.telegram.api.types.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -96,6 +92,10 @@ public class UpdateHandlingService {
 
         if (callbackQuery.getData().equalsIgnoreCase("read-later")) {
             String postUrl = callbackQuery.getMessage().getText();
+
+            if (!readLaterService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
+                return "The post has already been added earlier";
+            }
 
             try {
                 Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);

@@ -8,6 +8,7 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "postUrl"}))
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
