@@ -114,6 +114,7 @@ public class UpdateHandlingService {
                 tgmBotService.getTgmBot().answerCallbackQuery(
                         callbackQuery.getId(),
                         "The post has already been added earlier");
+                return;
             }
 
             final Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
