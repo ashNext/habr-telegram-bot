@@ -1,7 +1,6 @@
 package ashnext.telegram.tasks;
 
 import ashnext.telegram.api.response.ResponseUpdates;
-import ashnext.telegram.api.types.InlineKeyboardMarkup;
 import ashnext.telegram.api.types.Update;
 import ashnext.telegram.service.TgmBotService;
 import ashnext.telegram.service.UpdateHandlingService;
@@ -27,39 +26,9 @@ public class UpdateTask {
         if (update.getMyChatMember() != null) {
             updateHandlingService.changeUserStatus(update.getMyChatMember());
         } else if (update.getMessage() != null) {
-            if (update.getMessage().getText().equalsIgnoreCase("/rlater")) {
-                InlineKeyboardMarkup buttons = updateHandlingService.getReadLaterButtons(update.getMessage());
-
-                String msg = "List Read later:";
-                if (buttons.getInlineKeyboard().length == 0) {
-                    msg = msg + " empty";
-                }
-                tgmBotService.getTgmBot().sendMessage(
-                        update.getMessage().getChat().getId(), msg, buttons);
-            } else {
-                String msg = updateHandlingService.processMessage(update.getMessage());
-                tgmBotService.getTgmBot().sendMessage(update.getMessage().getChat().getId(), msg);
-            }
+            updateHandlingService.processMessage(update.getMessage());
         } else if (update.getCallbackQuery() != null) {
-            if (update.getCallbackQuery().getData().equalsIgnoreCase("delete")) {
-                tgmBotService.getTgmBot().deleteMessage(
-                        update.getCallbackQuery().getMessage().getChat().getId(),
-                        update.getCallbackQuery().getMessage().getMessageId());
-                tgmBotService.getTgmBot().answerCallbackQuery(update.getCallbackQuery().getId(), "");
-            } else {
-                String msg = updateHandlingService.kb(update.getCallbackQuery());
-                if (msg != null) {
-                    if (msg.startsWith("http")) {
-                        tgmBotService.getTgmBot().sendMessage(
-                                update.getCallbackQuery().getMessage().getChat().getId(),
-                                msg,
-                                updateHandlingService.getButtonsForPostFromReadLater());
-                        tgmBotService.getTgmBot().answerCallbackQuery(update.getCallbackQuery().getId(), "");
-                    } else {
-                        tgmBotService.getTgmBot().answerCallbackQuery(update.getCallbackQuery().getId(), msg);
-                    }
-                }
-            }
+            updateHandlingService.handlingCallBackQuery(update.getCallbackQuery());
         }
     }
 

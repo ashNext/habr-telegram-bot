@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,17 +19,21 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UpdateHandlingService {
 
+    private final TgmBotService tgmBotService;
+
     private final UserService userService;
 
     private final ReadLaterService readLaterService;
 
     private final ParseHabrService parseHabrService;
 
-    public String processMessage(Message message) {
+    public void processMessage(Message message) {
         final String firstName = message.getTgmUser().getFirstName();
         final Long tgmUserId = message.getTgmUser().getId();
 
         String msg;
+        InlineKeyboardMarkup buttons = new InlineKeyboardMarkup();
+
         User user = userService.getByTelegramUserId(tgmUserId);
         if (message.getText().equalsIgnoreCase("/start")) {
             if (user != null) {
@@ -40,6 +43,13 @@ public class UpdateHandlingService {
                 user = userService.create(new User(tgmUserId, message.getChat().getId()));
                 msg = String.format("Hi, %s!", firstName);
                 log.info("Added new user ({})", user);
+            }
+        } else if (message.getText().equalsIgnoreCase("/rlater")) {
+            buttons = getReadLaterButtons(message);
+
+            msg = "List Read later:";
+            if (buttons.getInlineKeyboard().length == 0) {
+                msg = msg + " empty";
             }
         } else {
             if (user == null) {
@@ -59,7 +69,11 @@ public class UpdateHandlingService {
             }
         }
 
-        return msg;
+        if (buttons.getInlineKeyboard() != null) {
+            tgmBotService.getTgmBot().sendMessage(message.getChat().getId(), msg, buttons);
+        } else {
+            tgmBotService.getTgmBot().sendMessage(message.getChat().getId(), msg);
+        }
     }
 
     public void changeUserStatus(ChatMemberUpdated chatMemberUpdated) {
@@ -86,44 +100,58 @@ public class UpdateHandlingService {
         }
     }
 
-    public String kb(CallbackQuery callbackQuery) {
-        final Long tgmUserId = callbackQuery.getUser().getId();
-        final User user = userService.getByTelegramUserId(tgmUserId);
+    public void handlingCallBackQuery(CallbackQuery callbackQuery) {
+        final User user = userService.getByTelegramUserId(callbackQuery.getUser().getId());
+        final String cbqData = callbackQuery.getData();
+        final Message cbqMessage = callbackQuery.getMessage();
 
-        if (callbackQuery.getData().equalsIgnoreCase("read-later")) {
-            String postUrl = callbackQuery.getMessage().getText();
-
+        if (cbqData.equalsIgnoreCase("delete")) {
+            tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
+            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Deleted");
+        } else if (cbqData.equalsIgnoreCase("read-later")) {
+            final String postUrl = cbqMessage.getText();
             if (!readLaterService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
-                return "The post has already been added earlier";
+                tgmBotService.getTgmBot().answerCallbackQuery(
+                        callbackQuery.getId(),
+                        "The post has already been added earlier");
             }
 
-            try {
-                Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
-                if (optPost.isPresent()) {
-                    readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader()));
-                    return "Added for reading later:\n" + optPost.get().getHeader();
+            final Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
+            if (optPost.isPresent()) {
+                if (readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader())) != null) {
+                    tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
+                    tgmBotService.getTgmBot().answerCallbackQuery(
+                            callbackQuery.getId(),
+                            "Post has been moved to the list Read Later");
+                } else {
+                    tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Something went wrong");
                 }
-            } catch (IOException e) {
-                log.error("Error in kb", e);
+            } else {
+                tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Error parsing post header ((");
             }
-        } else if (callbackQuery.getData().startsWith("remove-read-later")) {
-            readLaterService.getAllByUserAndPostUrl(user, callbackQuery.getMessage().getText()).forEach(
+        } else if (cbqData.startsWith("remove-read-later")) {
+            readLaterService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
                     readLater -> readLaterService.delete(readLater.getId())
             );
-            return "Remove from reading later";
-        } else if (callbackQuery.getData().startsWith("rl:")) {
-
-            Optional<ReadLater> readLater = readLaterService
-                    .getByUUID(UUID.fromString(callbackQuery.getData().substring(3)));
-            if (readLater.isPresent()) {
-                return readLater.get().getPostUrl();
+            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Remove from the list Read later");
+        } else if (cbqData.startsWith("rl:")) {
+            Optional<ReadLater> optReadLater =
+                    readLaterService.getByUUID(UUID.fromString(cbqData.substring(3)));
+            if (optReadLater.isPresent()) {
+                tgmBotService.getTgmBot().sendMessage(
+                        cbqMessage.getChat().getId(),
+                        optReadLater.get().getPostUrl(),
+                        getButtonsForPostFromReadLater());
+                tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+            } else {
+                tgmBotService.getTgmBot().answerCallbackQuery(
+                        callbackQuery.getId(),
+                        "Post would be removed from the list Read later");
             }
         }
-
-        return null;
     }
 
-    public InlineKeyboardMarkup getReadLaterButtons(Message message) {
+    private InlineKeyboardMarkup getReadLaterButtons(Message message) {
         final Long tgmUserId = message.getTgmUser().getId();
         User user = userService.getByTelegramUserId(tgmUserId);
 
@@ -142,7 +170,7 @@ public class UpdateHandlingService {
         return new InlineKeyboardMarkup(buttons);
     }
 
-    public InlineKeyboardMarkup getButtonsForPostFromReadLater() {
+    private InlineKeyboardMarkup getButtonsForPostFromReadLater() {
         InlineKeyboardButton[][] buttons = new InlineKeyboardButton[][]{{
                 new InlineKeyboardButton("\uD83D\uDCE4", "remove-read-later", ""),
                 new InlineKeyboardButton("\uD83D\uDDD1", "delete", "")
