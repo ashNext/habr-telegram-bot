@@ -32,27 +32,25 @@ public class ParseHabrService {
         List<String> postUrls = parseAndGetUrlsOnPage(SITE_URL + "/ru/all/");
         Collections.reverse(postUrls);
 
-        if (!postUrls.isEmpty() && previousNewPosts.isEmpty()) {
-            previousNewPosts.addAll(postUrls);
-            return newPosts;
+        if (previousNewPosts.isEmpty() && !postUrls.isEmpty()) {
+            List<String> postUrlsPage2 = parseAndGetUrlsOnPage(SITE_URL + "/ru/all/page2/");
+            if (!postUrlsPage2.isEmpty()) {
+                Collections.reverse(postUrlsPage2);
+                previousNewPosts.addAll(postUrlsPage2);
+                previousNewPosts.addAll(postUrls);
+            } else {
+                return newPosts;
+            }
         }
-
-//        if (!lastPostUrl.isEmpty()) {
-//            postUrls.add(lastPostUrl);
-//        }
 
         for (String postUrl : postUrls) {
             if (!previousNewPosts.contains(postUrl)) {
                 parseAndGetPost(postUrl).ifPresent(post -> {
                     newPosts.add(post);
-//                    previousNewPosts.poll();
+                    previousNewPosts.poll();
                     previousNewPosts.add(postUrl);
                 });
             }
-        }
-
-        for (Post newPost : newPosts) {
-            previousNewPosts.poll();
         }
 
         return newPosts;
