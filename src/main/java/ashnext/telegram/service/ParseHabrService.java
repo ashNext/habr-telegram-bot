@@ -1,7 +1,10 @@
 package ashnext.telegram.service;
 
+import ashnext.model.Tag;
 import ashnext.parse.model.Post;
 import ashnext.parse.util.DateTimeUtils;
+import ashnext.service.TagService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -17,9 +20,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ParseHabrService {
 
     private static final String SITE_URL = "https://habr.com";
+
+    private final TagService tagService;
 
     @Value("${bot.last-post-url}")
     private String lastPostUrl;
@@ -49,6 +55,8 @@ public class ParseHabrService {
                     newPosts.add(post);
                     previousNewPosts.poll();
                     previousNewPosts.add(postUrl);
+
+                    post.getTags().forEach(tag -> tagService.create(new Tag(tag)));
                 });
             }
         }

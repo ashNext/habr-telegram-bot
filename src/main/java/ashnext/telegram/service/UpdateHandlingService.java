@@ -1,9 +1,11 @@
 package ashnext.telegram.service;
 
 import ashnext.model.ReadLater;
+import ashnext.model.Tag;
 import ashnext.model.User;
 import ashnext.parse.model.Post;
 import ashnext.service.ReadLaterService;
+import ashnext.service.TagService;
 import ashnext.service.UserService;
 import ashnext.telegram.api.types.*;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,8 @@ public class UpdateHandlingService {
 
     private final ParseHabrService parseHabrService;
 
+    private final TagService tagService;
+
     public void processMessage(Message message) {
         final String firstName = message.getTgmUser().getFirstName();
         final Long tgmUserId = message.getTgmUser().getId();
@@ -44,13 +48,6 @@ public class UpdateHandlingService {
                 msg = String.format("Hi, %s!", firstName);
                 log.info("Added new user ({})", user);
             }
-        } else if (message.getText().equalsIgnoreCase("/rlater")) {
-            buttons = getReadLaterButtons(message);
-
-            msg = "List Read later:";
-            if (buttons.getInlineKeyboard().length == 0) {
-                msg = msg + " empty";
-            }
         } else {
             if (user == null) {
                 msg = "You are not registered. Go to /start";
@@ -63,6 +60,20 @@ public class UpdateHandlingService {
                 userService.unsubscribe(user);
                 msg = "You unsubscribed";
                 log.info("User ({}) unsubscribed", user);
+            } else if (message.getText().equalsIgnoreCase("/rlater")) {
+                buttons = getReadLaterButtons(user);
+
+                msg = "List Read later:";
+                if (buttons.getInlineKeyboard().length == 0) {
+                    msg = msg + " empty";
+                }
+            } else if (message.getText().equalsIgnoreCase("/tags")) {
+                buttons = getAllTagsButtons();
+
+                msg = "Tags:";
+                if (buttons.getInlineKeyboard().length == 0) {
+                    msg = msg + " empty";
+                }
             } else {
                 msg = "I don't understand yet ((";
                 log.warn("Unprocessed user (tgmUserId={}) message '{}'", tgmUserId, message.getText());
@@ -149,13 +160,12 @@ public class UpdateHandlingService {
                         callbackQuery.getId(),
                         "Post would be removed from the list Read later");
             }
+        } else if (cbqData.startsWith("tg:")) {
+            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
         }
     }
 
-    private InlineKeyboardMarkup getReadLaterButtons(Message message) {
-        final Long tgmUserId = message.getTgmUser().getId();
-        User user = userService.getByTelegramUserId(tgmUserId);
-
+    private InlineKeyboardMarkup getReadLaterButtons(User user) {
         List<ReadLater> readLaterList = readLaterService.getAllByUser(user);
         InlineKeyboardButton[][] buttons = new InlineKeyboardButton[readLaterList.size()][1];
 
@@ -176,6 +186,25 @@ public class UpdateHandlingService {
                 new InlineKeyboardButton("\uD83D\uDCE4", "remove-read-later", ""),
                 new InlineKeyboardButton("\uD83D\uDDD1", "delete", "")
         }};
+
+        return new InlineKeyboardMarkup(buttons);
+    }
+
+    private InlineKeyboardMarkup getAllTagsButtons() {
+        List<Tag> tags = tagService.getAll();
+
+        int kbCountLines = tags.size() % 2 == 0 ? tags.size() / 2 : tags.size() / 2 + 1;
+        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[10][2];
+
+        for (int i = 0; i < 20; i++) {
+            InlineKeyboardButton button =
+                    new InlineKeyboardButton(
+                            tags.get(i).getName(),
+                            "tg:" + tags.get(i).getName(),
+                            "");
+
+            buttons[i / 2][i % 2 == 0 ? 0 : 1] = button;
+        }
 
         return new InlineKeyboardMarkup(buttons);
     }
