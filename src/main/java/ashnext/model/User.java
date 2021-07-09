@@ -5,9 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "`user`")
@@ -28,6 +27,13 @@ public class User extends BaseEntity {
 
     @Column(nullable = false, columnDefinition = "bool default false")
     private boolean subscription;
+
+    @CollectionTable(name = "user_tags", joinColumns = @JoinColumn(name = "user_id")
+            ,uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "tags_name"}, name = "user_tags_unique_idx")}
+    )
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Column(name = "tag")
+    private List<Tag> tags;
 
     public User(Long telegramUserId, Integer telegramChatId) {
         this.telegramUserId = telegramUserId;
