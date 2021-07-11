@@ -37,7 +37,7 @@ public class HabrParseExample {
 
     public static void main(String[] args) throws IOException {
         HabrParseExample parseHabr = new HabrParseExample();
-        parseHabr.parsePage("/ru/all/");
+        parseHabr.parsePageNew("/ru/all/");
 
         StringBuilder tagsString = new StringBuilder();
 
@@ -73,6 +73,21 @@ public class HabrParseExample {
 //            e.printStackTrace();
 //        }
 //        System.out.println(jsonResult);
+    }
+
+    private void parsePageNew(String url) throws IOException {
+        pageCounter++;
+
+        Document html = Jsoup.connect(SITE_URL + url).get();
+
+        posts.addAll(HabrParser.parsePostsOnNewPage(html));
+
+        if (pageCounter < MAX_PAGES && posts.size() < MAX_POSTS) {
+            Element nextPage = html.getElementById("pagination-next-page");
+            if (nextPage.hasAttr("href")) {
+                parsePageNew(nextPage.attr("href"));
+            }
+        }
     }
 
     private void parsePage(String url) throws IOException {
