@@ -2,6 +2,7 @@ package ashnext.telegram.service;
 
 import ashnext.model.ReadLater;
 import ashnext.model.Tag;
+import ashnext.model.TagGroup;
 import ashnext.model.User;
 import ashnext.parse.model.Post;
 import ashnext.service.ReadLaterService;
@@ -10,8 +11,10 @@ import ashnext.service.UserService;
 import ashnext.telegram.api.types.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,9 +71,9 @@ public class UpdateHandlingService {
                     msg = msg + " empty";
                 }
             } else if (message.getText().equalsIgnoreCase("/tags")) {
-                buttons = getAllTagsButtons();
+                buttons = getTagButtons();
 
-                msg = "Tags:";
+                msg = "Tag management:";
                 if (buttons.getInlineKeyboard().length == 0) {
                     msg = msg + " empty";
                 }
@@ -162,6 +165,27 @@ public class UpdateHandlingService {
             }
         } else if (cbqData.startsWith("tg:")) {
             tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+        } else if (cbqData.startsWith("tags-")) {
+            tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
+            if (cbqData.equalsIgnoreCase("tags-menu")) {
+                tgmBotService.getTgmBot().sendMessage(
+                        cbqMessage.getChat().getId(),
+                        "Tag management:",
+                        getTagButtons());
+            } else if (cbqData.startsWith("tags-all-tag:")) {
+                int page = Integer.parseInt(cbqData.substring(13));
+                tgmBotService.getTgmBot().sendMessage(
+                        cbqMessage.getChat().getId(),
+                        "Tags Only [page " + (page + 1) + "]",
+                        getAllTagsButtons(TagGroup.COMMON, page));
+            } else if (cbqData.startsWith("tags-all-blog:")) {
+                int page = Integer.parseInt(cbqData.substring(14));
+                tgmBotService.getTgmBot().sendMessage(
+                        cbqMessage.getChat().getId(),
+                        "Tags Blog [page " + (page + 1) + "]",
+                        getAllTagsButtons(TagGroup.BLOG, page));
+            }
+            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
         }
     }
 
@@ -190,21 +214,74 @@ public class UpdateHandlingService {
         return new InlineKeyboardMarkup(buttons);
     }
 
-    private InlineKeyboardMarkup getAllTagsButtons() {
-        List<Tag> tags = tagService.getAll();
+    private InlineKeyboardMarkup getAllTagsButtons(TagGroup tagGroup, int page) {
+        if (page < 0) {
+            page = 0;
+        }
+        Page<Tag> pageTags = tagService.getAllByTagGroup(tagGroup, page, 20);
+
+        if (page > pageTags.getTotalPages() - 1) {
+            page = pageTags.getTotalPages() - 1;
+            pageTags = tagService.getAllByTagGroup(tagGroup, page, 20);
+        }
+
+        List<Tag> tags;
+        if (pageTags.hasContent()) {
+            tags = pageTags.getContent();
+        } else {
+            tags = List.of();
+        }
 
         int kbCountLines = tags.size() % 2 == 0 ? tags.size() / 2 : tags.size() / 2 + 1;
-        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[10][2];
+        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[kbCountLines + 1][];
 
-        for (int i = 0; i < 20; i++) {
-            InlineKeyboardButton button =
-                    new InlineKeyboardButton(
-                            tags.get(i).getName(),
-                            "tg:" + tags.get(i).getName(),
-                            "");
+        Iterator<Tag> iterator = tags.iterator();
+        for (int i = 0; i < kbCountLines; i++) {
+            if (i == kbCountLines - 1 && tags.size() % 2 != 0) {
+                buttons[i] = new InlineKeyboardButton[1];
+            } else {
+                buttons[i] = new InlineKeyboardButton[2];
+            }
 
-            buttons[i / 2][i % 2 == 0 ? 0 : 1] = button;
+            for (int j = 0; j < 2 && iterator.hasNext(); j++) {
+                String buttonCaption = iterator.next().getName();
+                if (buttonCaption.startsWith("Блог компании")) {
+                    buttonCaption = buttonCaption.substring(14);
+                }
+                buttonCaption = buttonCaption.length() > 29 ? buttonCaption.substring(0, 29) : buttonCaption;
+                InlineKeyboardButton button =
+                        new InlineKeyboardButton(buttonCaption, "tg:" + buttonCaption, "");
+                buttons[i][j] = button;
+            }
         }
+
+        String callbackData = tagGroup.equals(TagGroup.BLOG) ? "tags-all-blog:" : "tags-all-tag:";
+        buttons[kbCountLines] = new InlineKeyboardButton[6];
+        buttons[kbCountLines][0] = new InlineKeyboardButton(
+                page == 0 ? "" : "<<", callbackData + 0, "");
+        buttons[kbCountLines][1] = new InlineKeyboardButton(
+                page == 0 ? "" : "<", callbackData + (page - 1), "");
+        buttons[kbCountLines][2] = new InlineKeyboardButton("Back", "tags-menu", "");
+        buttons[kbCountLines][3] = new InlineKeyboardButton("Close", "delete", "");
+        buttons[kbCountLines][4] = new InlineKeyboardButton(
+                page == pageTags.getTotalPages() - 1 ? "" : ">", callbackData + (page + 1), "");
+        buttons[kbCountLines][5] = new InlineKeyboardButton(
+                page == pageTags.getTotalPages() - 1 ? "" : ">>",
+                callbackData + (pageTags.getTotalPages() - 1), "");
+
+        return new InlineKeyboardMarkup(buttons);
+    }
+
+    private InlineKeyboardMarkup getTagButtons() {
+        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[][]{{
+                new InlineKeyboardButton("Tags Only", "tags-all-tag:0", ""),
+                new InlineKeyboardButton("Tags Blogs", "tags-all-blog:0", ""),
+        }, {
+                new InlineKeyboardButton("Tags Only with out my", "tags-wom-tag", ""),
+                new InlineKeyboardButton("Tags Blogs with out my", "tags-wom-blog", ""),
+        }, {
+                new InlineKeyboardButton("All my tags", "tags-my-all", "")
+        }};
 
         return new InlineKeyboardMarkup(buttons);
     }

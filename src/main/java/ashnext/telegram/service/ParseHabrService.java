@@ -1,23 +1,19 @@
 package ashnext.telegram.service;
 
-import ashnext.model.Tag;
 import ashnext.parse.HabrParser;
 import ashnext.parse.HabrParserException;
 import ashnext.parse.model.Post;
 import ashnext.service.TagService;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -56,7 +52,7 @@ public class ParseHabrService {
                 previousNewUrlsPosts.poll();
                 previousNewUrlsPosts.add(currentPost.getUrl());
 
-                currentPost.getTags().forEach(tag -> tagService.create(new Tag(tag)));
+                currentPost.getTags().forEach(tagService::create);
             }
         }
 
