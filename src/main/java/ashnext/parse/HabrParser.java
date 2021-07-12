@@ -2,15 +2,15 @@ package ashnext.parse;
 
 import ashnext.parse.model.Post;
 import ashnext.parse.util.DateTimeUtils;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class HabrParser {
@@ -80,12 +80,17 @@ public class HabrParser {
         }
 
         return contentItems.stream()
-                .map(element -> element.getElementsByClass("post__title_link"))
-                .filter(elements -> !elements.isEmpty())
-                .map(elements -> elements.get(0))
-                .filter(element -> element.hasAttr("href") && element.hasText())
-                .map(element -> new Post(element.attr("href"), null, null, null, null))
-                .collect(Collectors.toList());
+                .map(contentItem -> {
+                    Element postTitleLinkElement = getElementByClass(contentItem, "post__title_link");
+                    String postUrl = getAttrElement(postTitleLinkElement, "href");
+                    String title = getTextElement(postTitleLinkElement);
+
+                    Element tagsContentElement = getElementByClass(contentItem, "post__hubs inline-list");
+                    Elements postTags = tagsContentElement.getElementsByClass("inline-list__item-link hub-link ");
+                    List<String> tags = postTags.stream().map(Element::text).collect(Collectors.toList());
+
+                    return new Post(postUrl, title, null, tags, null);
+                }).collect(Collectors.toList());
     }
 
     public static List<Post> parsePostsOnNewPage(Document html) {
@@ -97,14 +102,9 @@ public class HabrParser {
                             "tm-articles-list__item"));
         }
 
-        final List<Post> resultPostList = new ArrayList<>();
-
-        articlesElements.forEach(
-                article -> {
-                    if (!article.getElementsByClass("tm-megapost-snippet").isEmpty()) {
-                        return;
-                    }
-
+        return articlesElements.stream()
+                .filter(element -> !element.getElementsByClass("tm-article-snippet").isEmpty())
+                .map(article -> {
                     Element articleSnippetElement = getElementByClass(article, "tm-article-snippet");
 
                     //title and url
@@ -127,11 +127,8 @@ public class HabrParser {
                             .stream()
                             .map(Element::text).collect(Collectors.toList());
 
-                    resultPostList.add(new Post(url, title, time, tags, null));
-                }
-        );
-
-        return resultPostList;
+                    return new Post(url, title, time, tags, null);
+                }).collect(Collectors.toList());
     }
 
     private static Element getElementByClass(Element element, String className) {
