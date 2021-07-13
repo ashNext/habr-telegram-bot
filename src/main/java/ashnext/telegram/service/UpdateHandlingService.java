@@ -14,10 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -180,18 +177,44 @@ public class UpdateHandlingService {
                         cbqMessage.getChat().getId(),
                         "Tag management:",
                         getTagButtons());
-            } else if (cbqData.startsWith("tags-all-tag:")) {
-                int page = Integer.parseInt(cbqData.substring(13));
+            } else {
+                List<String> dataList = Arrays.stream(cbqData.split(":")).toList();
+                String data = dataList.get(0);
+                int page = Integer.parseInt(dataList.get(1));
+
+                String msg = "";
+                Page<Tag> pageTags = null;
+                String answerPrefixCallbackQuery = "tg";
+                switch (data) {
+                    case "tags-all-tag" -> {
+                        pageTags = tagService.getAllByTagGroup(TagGroup.COMMON, page, 20);
+                        msg = "Tags Only";
+                    }
+                    case "tags-all-blog" -> {
+                        msg = "Tags Blog";
+                        pageTags = tagService.getAllByTagGroup(TagGroup.BLOG, page, 20);
+                    }
+                    case "tags-my-tag" -> {
+                        msg = "My tags Only";
+                        pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, page, 20);
+                        answerPrefixCallbackQuery = "tgr";
+                    }
+                    case "tags-my-blog" -> {
+                        msg = "My tags Blog";
+                        pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, page, 20);
+                        answerPrefixCallbackQuery = "tgr";
+                    }
+                }
+
+                if (pageTags != null && pageTags.hasContent()) {
+                    msg = msg + " [page " + (page + 1) + " of " + pageTags.getTotalPages() + "]";
+                } else {
+                    msg = msg + " [empty]";
+                }
                 tgmBotService.getTgmBot().sendMessage(
                         cbqMessage.getChat().getId(),
-                        "Tags Only [page " + (page + 1) + "]",
-                        getAllTagsButtons(TagGroup.COMMON, page));
-            } else if (cbqData.startsWith("tags-all-blog:")) {
-                int page = Integer.parseInt(cbqData.substring(14));
-                tgmBotService.getTgmBot().sendMessage(
-                        cbqMessage.getChat().getId(),
-                        "Tags Blog [page " + (page + 1) + "]",
-                        getAllTagsButtons(TagGroup.BLOG, page));
+                        msg,
+                        getTagsButtons(pageTags, page, answerPrefixCallbackQuery, data));
             }
             tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
         }
@@ -222,19 +245,10 @@ public class UpdateHandlingService {
         return new InlineKeyboardMarkup(buttons);
     }
 
-    private InlineKeyboardMarkup getAllTagsButtons(TagGroup tagGroup, int page) {
-        if (page < 0) {
-            page = 0;
-        }
-        Page<Tag> pageTags = tagService.getAllByTagGroup(tagGroup, page, 20);
-
-        if (page > pageTags.getTotalPages() - 1) {
-            page = pageTags.getTotalPages() - 1;
-            pageTags = tagService.getAllByTagGroup(tagGroup, page, 20);
-        }
-
+    private InlineKeyboardMarkup getTagsButtons(Page<Tag> pageTags, int page,
+                                                String answerPrefixCallbackQuery, String buttonPrefixCallbackQuery) {
         List<Tag> tags;
-        if (pageTags.hasContent()) {
+        if (pageTags != null && pageTags.hasContent()) {
             tags = pageTags.getContent();
         } else {
             tags = List.of();
@@ -258,12 +272,12 @@ public class UpdateHandlingService {
                     buttonCaption = buttonCaption.substring(14);
                 }
                 InlineKeyboardButton button =
-                        new InlineKeyboardButton(buttonCaption, "tg:" + tag.getId(), "");
+                        new InlineKeyboardButton(buttonCaption, answerPrefixCallbackQuery + ":" + tag.getId(), "");
                 buttons[i][j] = button;
             }
         }
 
-        String callbackData = tagGroup.equals(TagGroup.BLOG) ? "tags-all-blog:" : "tags-all-tag:";
+        String callbackData = buttonPrefixCallbackQuery + ":";
         buttons[kbCountLines] = new InlineKeyboardButton[6];
         buttons[kbCountLines][0] = new InlineKeyboardButton(
                 page == 0 ? "" : "<<", callbackData + 0, "");
@@ -288,7 +302,8 @@ public class UpdateHandlingService {
                 new InlineKeyboardButton("Tags Only with out my", "tags-wom-tag", ""),
                 new InlineKeyboardButton("Tags Blogs with out my", "tags-wom-blog", ""),
         }, {
-                new InlineKeyboardButton("All my tags", "tags-my-all", "")
+                new InlineKeyboardButton("My tags Only", "tags-my-tag:0", ""),
+                new InlineKeyboardButton("My tags Blogs", "tags-my-blog:0", "")
         }};
 
         return new InlineKeyboardMarkup(buttons);

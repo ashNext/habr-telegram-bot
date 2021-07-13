@@ -72,7 +72,8 @@ public class HabrParser {
                 .getElementsByClass("content-list__item content-list__item_post shortcuts_item");
 
         List<Element> contentItems = contentList.stream()
-                .filter(element -> element.attr("id").startsWith("post_"))
+                .filter(element -> element.attr("id").startsWith("post_")
+                        && !element.getElementsByClass("post__title_link").isEmpty())
                 .collect(Collectors.toList());
 
         if (contentItems.isEmpty()) {

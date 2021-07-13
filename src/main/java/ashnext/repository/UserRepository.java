@@ -1,5 +1,6 @@
 package ashnext.repository;
 
+import ashnext.model.TagGroup;
 import ashnext.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +18,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     User findByTelegramUserId(@Param("telegramUserId") Long telegramUserId);
 
     List<User> findAllByActiveTrueAndSubscriptionTrue();
+
+    @Query("SELECT u FROM User u JOIN FETCH u.tags t WHERE u.id=:id AND t.tagGroup=:tagGroup")
+    Optional<User> findWithTagsByIdAndTagGroup(@Param("id") UUID id, @Param("tagGroup") TagGroup tagGroup);
 }

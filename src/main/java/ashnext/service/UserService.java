@@ -1,9 +1,11 @@
 package ashnext.service;
 
 import ashnext.model.Tag;
+import ashnext.model.TagGroup;
 import ashnext.model.User;
 import ashnext.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,6 +43,25 @@ public class UserService {
             }
         }
         return Optional.empty();
+    }
+
+    public Page<Tag> getByIdAndTagGroup(UUID userId, TagGroup tagGroup, int page, int size) {
+        Optional<User> user = userRepository.findWithTagsByIdAndTagGroup(userId, tagGroup);
+
+        if (user.isPresent()) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+
+            List<Tag> tags = user.get().getTags();
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), tags.size());
+
+            return new PageImpl<Tag>(
+                    tags.subList(start, end),
+                    pageable,
+                    tags.size());
+        }
+        return null;
     }
 
     private Optional<User> getByIdWithTags(UUID id) {
