@@ -11,6 +11,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -24,12 +26,13 @@ public class TagService {
     }
 
     public boolean addIfAbsent(String tagName) {
-        if (getByTagName(tagName) == null) {
-            create(tagName);
-            return true;
+        if (getByTagName(tagName).isPresent()) {
+            log.info("Tag '{}' already exists", tagName);
+            return false;
         }
-        log.info("Tag '{}' already exists", tagName);
-        return false;
+        Tag newTag = create(tagName);
+        log.info("Added new tag '{}', group '{}'", newTag.getName(), newTag.getTagGroup());
+        return true;
     }
 
     public Tag create(String tagName) {
@@ -37,11 +40,14 @@ public class TagService {
         if (tagName.startsWith("Блог компании ")) {
             tagGroup = TagGroup.BLOG;
         }
-        log.info("Add new tag '{}', group '{}'", tagName, tagGroup);
         return tagRepository.save(new Tag(tagName, tagGroup));
     }
 
-    private Tag getByTagName(String tag) {
+    public Optional<Tag> getById(UUID uuid) {
+        return tagRepository.findById(uuid);
+    }
+
+    private Optional<Tag> getByTagName(String tag) {
         return tagRepository.findByName(tag);
     }
 

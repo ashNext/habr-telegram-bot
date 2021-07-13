@@ -7,10 +7,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface TagRepository extends JpaRepository<Tag, String> {
+import java.util.Optional;
+import java.util.UUID;
 
-    Tag findByName(String tag);
+@Repository
+public interface TagRepository extends JpaRepository<Tag, UUID> {
+
+    Optional<Tag> findByName(String name);
 
     Page<Tag> findAllByTagGroupIs(TagGroup tagGroup, Pageable pageable);
 }

@@ -164,7 +164,15 @@ public class UpdateHandlingService {
                         "Post would be removed from the list Read later");
             }
         } else if (cbqData.startsWith("tg:")) {
-            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+            Optional<Tag> addedTag = userService
+                    .addTagByUserIdAndTagId(user.getId(), UUID.fromString(cbqData.substring(3)));
+
+            if (addedTag.isPresent()) {
+                tgmBotService.getTgmBot()
+                        .answerCallbackQuery(callbackQuery.getId(), "Tag " + addedTag.get().getName() + " added");
+            } else {
+                tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+            }
         } else if (cbqData.startsWith("tags-")) {
             tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
             if (cbqData.equalsIgnoreCase("tags-menu")) {
@@ -244,13 +252,13 @@ public class UpdateHandlingService {
             }
 
             for (int j = 0; j < 2 && iterator.hasNext(); j++) {
-                String buttonCaption = iterator.next().getName();
+                Tag tag = iterator.next();
+                String buttonCaption = tag.getName();
                 if (buttonCaption.startsWith("Блог компании")) {
                     buttonCaption = buttonCaption.substring(14);
                 }
-                buttonCaption = buttonCaption.length() > 29 ? buttonCaption.substring(0, 29) : buttonCaption;
                 InlineKeyboardButton button =
-                        new InlineKeyboardButton(buttonCaption, "tg:" + buttonCaption, "");
+                        new InlineKeyboardButton(buttonCaption, "tg:" + tag.getId(), "");
                 buttons[i][j] = button;
             }
         }

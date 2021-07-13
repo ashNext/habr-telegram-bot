@@ -28,11 +28,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, columnDefinition = "bool default false")
     private boolean subscription;
 
-    @CollectionTable(name = "user_tags", joinColumns = @JoinColumn(name = "user_id")
-            ,uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "tags_name"}, name = "user_tags_unique_idx")}
-    )
-    @ElementCollection(fetch = FetchType.LAZY)
-    @Column(name = "tag")
+    @Column(name = "tags")
+    @ElementCollection(targetClass = Tag.class, fetch = FetchType.LAZY)
+    @CollectionTable(name = "user_tags", joinColumns = @JoinColumn(name = "user_id"))
     private List<Tag> tags;
 
     public User(Long telegramUserId, Integer telegramChatId) {

@@ -48,11 +48,11 @@ public class ParseHabrService {
 
         for (Post currentPost : currentPostList) {
             if (!previousNewUrlsPosts.contains(currentPost.getUrl())) {
+                currentPost.getTags().forEach(tagService::addIfAbsent);
+
                 newPosts.add(currentPost);
                 previousNewUrlsPosts.poll();
                 previousNewUrlsPosts.add(currentPost.getUrl());
-
-                currentPost.getTags().forEach(tagService::create);
             }
         }
 
