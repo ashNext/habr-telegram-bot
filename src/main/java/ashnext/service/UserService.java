@@ -108,4 +108,8 @@ public class UserService {
     public List<User> getAllActiveAndSubscribe() {
         return userRepository.findAllByActiveTrueAndSubscriptionTrue();
     }
+
+    public List<User> getAllWithTagsByActiveAndSub() {
+        return userRepository.findAllWithTagsByActiveAndSub();
+    }
 }
