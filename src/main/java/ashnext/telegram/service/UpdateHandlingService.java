@@ -194,6 +194,14 @@ public class UpdateHandlingService {
                         msg = "Tags Blog";
                         pageTags = tagService.getAllByTagGroup(TagGroup.BLOG, page, 20);
                     }
+                    case "tags-wom-tag" -> {
+                        msg = "Tags Only without my";
+                        pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, page, 20);
+                    }
+                    case "tags-wom-blog" -> {
+                        msg = "Tags Blog without my";
+                        pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, page, 20);
+                    }
                     case "tags-my-tag" -> {
                         msg = "My tags Only";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, page, 20);
@@ -278,18 +286,24 @@ public class UpdateHandlingService {
         }
 
         String callbackData = buttonPrefixCallbackQuery + ":";
-        buttons[kbCountLines] = new InlineKeyboardButton[6];
+
+        if (pageTags != null && pageTags.getTotalPages() != 0) {
+            buttons[kbCountLines] = new InlineKeyboardButton[6];
+            buttons[kbCountLines][4] = new InlineKeyboardButton(
+                    page == pageTags.getTotalPages() - 1 ? "" : ">", callbackData + (page + 1), "");
+            buttons[kbCountLines][5] = new InlineKeyboardButton(
+                    page == pageTags.getTotalPages() - 1 ? "" : ">>",
+                    callbackData + (pageTags.getTotalPages() - 1), "");
+        } else {
+            buttons[kbCountLines] = new InlineKeyboardButton[4];
+        }
+
         buttons[kbCountLines][0] = new InlineKeyboardButton(
                 page == 0 ? "" : "<<", callbackData + 0, "");
         buttons[kbCountLines][1] = new InlineKeyboardButton(
                 page == 0 ? "" : "<", callbackData + (page - 1), "");
         buttons[kbCountLines][2] = new InlineKeyboardButton("Back", "tags-menu", "");
         buttons[kbCountLines][3] = new InlineKeyboardButton("Close", "delete", "");
-        buttons[kbCountLines][4] = new InlineKeyboardButton(
-                page == pageTags.getTotalPages() - 1 ? "" : ">", callbackData + (page + 1), "");
-        buttons[kbCountLines][5] = new InlineKeyboardButton(
-                page == pageTags.getTotalPages() - 1 ? "" : ">>",
-                callbackData + (pageTags.getTotalPages() - 1), "");
 
         return new InlineKeyboardMarkup(buttons);
     }
@@ -299,8 +313,8 @@ public class UpdateHandlingService {
                 new InlineKeyboardButton("Tags Only", "tags-all-tag:0", ""),
                 new InlineKeyboardButton("Tags Blogs", "tags-all-blog:0", ""),
         }, {
-                new InlineKeyboardButton("Tags Only with out my", "tags-wom-tag", ""),
-                new InlineKeyboardButton("Tags Blogs with out my", "tags-wom-blog", ""),
+                new InlineKeyboardButton("Tags Only with out my", "tags-wom-tag:0", ""),
+                new InlineKeyboardButton("Tags Blogs with out my", "tags-wom-blog:0", ""),
         }, {
                 new InlineKeyboardButton("My tags Only", "tags-my-tag:0", ""),
                 new InlineKeyboardButton("My tags Blogs", "tags-my-blog:0", "")
