@@ -28,7 +28,7 @@ public class TgmBot {
             new BotCommand("/sub", "Subscribe to articles"),
             new BotCommand("/unsub", "Cancel subscription"),
             new BotCommand("/rlater", "Read later list"),
-            new BotCommand("/tags", "Show all tags")
+            new BotCommand("/tags", "Tag management")
     );
 
     private final OkHttpClient client;

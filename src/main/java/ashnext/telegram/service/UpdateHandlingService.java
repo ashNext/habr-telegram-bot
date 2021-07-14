@@ -68,6 +68,7 @@ public class UpdateHandlingService {
                     msg = msg + " empty";
                 }
             } else if (message.getText().equalsIgnoreCase("/tags")) {
+                tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
                 buttons = getTagButtons();
 
                 msg = "Tag management:";
@@ -116,9 +117,10 @@ public class UpdateHandlingService {
         final String cbqData = callbackQuery.getData();
         final Message cbqMessage = callbackQuery.getMessage();
 
-        if (cbqData.equalsIgnoreCase("delete")) {
+        if (cbqData.equalsIgnoreCase("delete") || cbqData.equalsIgnoreCase("close")) {
             tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
-            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Deleted");
+            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(),
+                    cbqData.equalsIgnoreCase("delete") ? "Deleted" : "");
         } else if (cbqData.equalsIgnoreCase("read-later")) {
             final String postUrl = cbqMessage.getText();
             if (!readLaterService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
@@ -191,7 +193,7 @@ public class UpdateHandlingService {
                 String buttonData = "";
                 switch (data.get(1)) {
                     case "t" -> {
-                        msg = "Tags Only without my";
+                        msg = "Without my common\n(click to add)";
                         pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, page, 20);
                         if (pageTags!=null &&page>pageTags.getTotalPages()-1) {
                             pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, --page, 20);
@@ -200,7 +202,7 @@ public class UpdateHandlingService {
                         buttonData = "tags-wom-tag";
                     }
                     case "b" -> {
-                        msg = "Tags Blog without my";
+                        msg = "Without my company blogs\n(click to add)";
                         pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, page, 20);
                         if (pageTags!=null && page>pageTags.getTotalPages()-1) {
                             pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, --page, 20);
@@ -245,7 +247,7 @@ public class UpdateHandlingService {
                 String buttonData = "";
                 switch (data.get(1)) {
                     case "t" -> {
-                        msg = "My tags Only";
+                        msg = "My common\n(click to remove)";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, page, 20);
                         if (pageTags!=null &&page>pageTags.getTotalPages()-1) {
                             pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, --page, 20);
@@ -254,7 +256,7 @@ public class UpdateHandlingService {
                         buttonData = "tags-my-tag";
                     }
                     case "b" -> {
-                        msg = "My tags Blog";
+                        msg = "My company blogs\n(click to remove)";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, page, 20);
                         if (pageTags!=null && page>pageTags.getTotalPages()-1) {
                                 pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, --page, 20);
@@ -298,31 +300,31 @@ public class UpdateHandlingService {
                 switch (data) {
                     case "tags-all-tag" -> {
                         pageTags = tagService.getAllByTagGroup(TagGroup.COMMON, page, 20);
-                        msg = "Tags Only";
+                        msg = "All common\n(click to add)";
                         answerPrefixCallbackQuery = "tga:t";
                     }
                     case "tags-all-blog" -> {
-                        msg = "Tags Blog";
+                        msg = "All company blogs\n(click to add)";
                         pageTags = tagService.getAllByTagGroup(TagGroup.BLOG, page, 20);
                         answerPrefixCallbackQuery = "tga:b";
                     }
                     case "tags-wom-tag" -> {
-                        msg = "Tags Only without my";
+                        msg = "Without my common\n(click to add)";
                         pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, page, 20);
                         answerPrefixCallbackQuery = "tgw:t";
                     }
                     case "tags-wom-blog" -> {
-                        msg = "Tags Blog without my";
+                        msg = "Without my company blogs\n(click to add)";
                         pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, page, 20);
                         answerPrefixCallbackQuery = "tgw:b";
                     }
                     case "tags-my-tag" -> {
-                        msg = "My tags Only";
+                        msg = "My common\n(click to remove)";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, page, 20);
                         answerPrefixCallbackQuery = "tgr:t";
                     }
                     case "tags-my-blog" -> {
-                        msg = "My tags Blog";
+                        msg = "My company blogs\n(click to remove)";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, page, 20);
                         answerPrefixCallbackQuery = "tgr:b";
                     }
@@ -418,21 +420,23 @@ public class UpdateHandlingService {
         buttons[kbCountLines][1] = new InlineKeyboardButton(
                 page == 0 ? "" : "<", callbackData + (page - 1), "");
         buttons[kbCountLines][2] = new InlineKeyboardButton("Back", "tags-menu", "");
-        buttons[kbCountLines][3] = new InlineKeyboardButton("Close", "delete", "");
+        buttons[kbCountLines][3] = new InlineKeyboardButton("Close", "close", "");
 
         return new InlineKeyboardMarkup(buttons);
     }
 
     private InlineKeyboardMarkup getTagButtons() {
         InlineKeyboardButton[][] buttons = new InlineKeyboardButton[][]{{
-                new InlineKeyboardButton("Tags Only", "tags-all-tag:0", ""),
-                new InlineKeyboardButton("Tags Blogs", "tags-all-blog:0", ""),
+                new InlineKeyboardButton("All common", "tags-all-tag:0", ""),
+                new InlineKeyboardButton("All company blogs", "tags-all-blog:0", ""),
         }, {
-                new InlineKeyboardButton("Tags Only with out my", "tags-wom-tag:0", ""),
-                new InlineKeyboardButton("Tags Blogs with out my", "tags-wom-blog:0", ""),
+                new InlineKeyboardButton("Without my common", "tags-wom-tag:0", ""),
+                new InlineKeyboardButton("Without my company blogs", "tags-wom-blog:0", ""),
         }, {
-                new InlineKeyboardButton("My tags Only", "tags-my-tag:0", ""),
-                new InlineKeyboardButton("My tags Blogs", "tags-my-blog:0", "")
+                new InlineKeyboardButton("My common", "tags-my-tag:0", ""),
+                new InlineKeyboardButton("My company blogs", "tags-my-blog:0", "")
+        }, {
+                new InlineKeyboardButton("Close", "close", "")
         }};
 
         return new InlineKeyboardMarkup(buttons);

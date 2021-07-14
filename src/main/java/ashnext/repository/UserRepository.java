@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findAllByActiveTrueAndSubscriptionTrue();
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.tags WHERE u.active=true AND u.subscription=true")
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.tags WHERE u.active=true AND u.subscription=true")
     List<User> findAllWithTagsByActiveAndSub();
 
     @Query("SELECT u FROM User u JOIN FETCH u.tags t WHERE u.id=:id AND t.tagGroup=:tagGroup")
