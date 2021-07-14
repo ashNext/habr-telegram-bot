@@ -45,6 +45,21 @@ public class UserService {
         return Optional.empty();
     }
 
+    public Optional<Tag> removeTagByUserIdAndTagId(UUID userId, UUID tagId) {
+        Optional<User> user = getByIdWithTags(userId);
+        Optional<Tag> tag = tagService.getById(tagId);
+
+        if (tag.isPresent() && user.isPresent()) {
+            List<Tag> userTags = user.get().getTags();
+            if (userTags.contains(tag.get())) {
+                user.get().getTags().remove(tag.get());
+                update(user.get());
+                return tag;
+            }
+        }
+        return Optional.empty();
+    }
+
     public Page<Tag> getByIdAndTagGroup(UUID userId, TagGroup tagGroup, int page, int size) {
         Optional<User> user = userRepository.findWithTagsByIdAndTagGroup(userId, tagGroup);
 

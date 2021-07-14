@@ -160,13 +160,123 @@ public class UpdateHandlingService {
                         callbackQuery.getId(),
                         "Post would be removed from the list Read later");
             }
-        } else if (cbqData.startsWith("tg:")) {
+        } else if (cbqData.startsWith("tga:")) {
+            List<String> data = Arrays.stream(cbqData.split(":")).toList();
             Optional<Tag> addedTag = userService
-                    .addTagByUserIdAndTagId(user.getId(), UUID.fromString(cbqData.substring(3)));
+                    .addTagByUserIdAndTagId(user.getId(), UUID.fromString(data.get(3)));
 
             if (addedTag.isPresent()) {
                 tgmBotService.getTgmBot()
                         .answerCallbackQuery(callbackQuery.getId(), "Tag " + addedTag.get().getName() + " added");
+            } else {
+                tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+            }
+        } else if (cbqData.startsWith("tgw:")) {
+            List<String> data = Arrays.stream(cbqData.split(":")).toList();
+            Optional<Tag> addedTag = userService
+                    .addTagByUserIdAndTagId(user.getId(), UUID.fromString(data.get(3)));
+
+            if (addedTag.isPresent()) {
+                tgmBotService.getTgmBot()
+                        .answerCallbackQuery(callbackQuery.getId(), "Tag " + addedTag.get().getName() + " added");
+
+
+                tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
+
+                int page = Integer.parseInt(data.get(2));
+
+                String msg = "";
+                Page<Tag> pageTags = null;
+                String answerPrefixCallbackQuery = "tgw";
+                String buttonData = "";
+                switch (data.get(1)) {
+                    case "t" -> {
+                        msg = "Tags Only without my";
+                        pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, page, 20);
+                        if (pageTags!=null &&page>pageTags.getTotalPages()-1) {
+                            pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, --page, 20);
+                        }
+                        answerPrefixCallbackQuery = "tgw:t";
+                        buttonData = "tags-wom-tag";
+                    }
+                    case "b" -> {
+                        msg = "Tags Blog without my";
+                        pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, page, 20);
+                        if (pageTags!=null && page>pageTags.getTotalPages()-1) {
+                            pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, --page, 20);
+                        }
+                        answerPrefixCallbackQuery = "tgw:b";
+                        buttonData = "tags-wom-blog";
+                    }
+                }
+
+                if (pageTags != null && pageTags.hasContent()) {
+                    msg = msg + " [page " + (page + 1) + " of " + pageTags.getTotalPages() + "]";
+                } else {
+                    msg = msg + " [empty]";
+                }
+                tgmBotService.getTgmBot().sendMessage(
+                        cbqMessage.getChat().getId(),
+                        msg,
+                        getTagsButtons(pageTags, page, answerPrefixCallbackQuery, buttonData));
+
+
+
+            } else {
+                tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+            }
+        } else if (cbqData.startsWith("tgr:")) {
+            List<String> data = Arrays.stream(cbqData.split(":")).toList();
+            Optional<Tag> removedTag = userService
+                    .removeTagByUserIdAndTagId(user.getId(), UUID.fromString(data.get(3)));
+
+            if (removedTag.isPresent()) {
+                tgmBotService.getTgmBot()
+                        .answerCallbackQuery(callbackQuery.getId(), "Tag " + removedTag.get().getName() + " removed");
+
+
+                tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
+
+                int page = Integer.parseInt(data.get(2));
+
+                String msg = "";
+                Page<Tag> pageTags = null;
+                String answerPrefixCallbackQuery = "tgr";
+                String buttonData = "";
+                switch (data.get(1)) {
+                    case "t" -> {
+                        msg = "My tags Only";
+                        pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, page, 20);
+                        if (pageTags!=null &&page>pageTags.getTotalPages()-1) {
+                            pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, --page, 20);
+                        }
+                        answerPrefixCallbackQuery = "tgr:t";
+                        buttonData = "tags-my-tag";
+                    }
+                    case "b" -> {
+                        msg = "My tags Blog";
+                        pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, page, 20);
+                        if (pageTags!=null && page>pageTags.getTotalPages()-1) {
+                                pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, --page, 20);
+                        }
+                        answerPrefixCallbackQuery = "tgr:b";
+                        buttonData = "tags-my-blog";
+                    }
+                }
+
+                if (pageTags != null && pageTags.hasContent()) {
+                    msg = msg + " [page " + (page + 1) + " of " + pageTags.getTotalPages() + "]";
+                } else {
+                    msg = msg + " [empty]";
+                }
+                tgmBotService.getTgmBot().sendMessage(
+                        cbqMessage.getChat().getId(),
+                        msg,
+                        getTagsButtons(pageTags, page, answerPrefixCallbackQuery, buttonData));
+
+
+
+
             } else {
                 tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
             }
@@ -184,33 +294,37 @@ public class UpdateHandlingService {
 
                 String msg = "";
                 Page<Tag> pageTags = null;
-                String answerPrefixCallbackQuery = "tg";
+                String answerPrefixCallbackQuery = "";
                 switch (data) {
                     case "tags-all-tag" -> {
                         pageTags = tagService.getAllByTagGroup(TagGroup.COMMON, page, 20);
                         msg = "Tags Only";
+                        answerPrefixCallbackQuery = "tga:t";
                     }
                     case "tags-all-blog" -> {
                         msg = "Tags Blog";
                         pageTags = tagService.getAllByTagGroup(TagGroup.BLOG, page, 20);
+                        answerPrefixCallbackQuery = "tga:b";
                     }
                     case "tags-wom-tag" -> {
                         msg = "Tags Only without my";
                         pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, page, 20);
+                        answerPrefixCallbackQuery = "tgw:t";
                     }
                     case "tags-wom-blog" -> {
                         msg = "Tags Blog without my";
                         pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, page, 20);
+                        answerPrefixCallbackQuery = "tgw:b";
                     }
                     case "tags-my-tag" -> {
                         msg = "My tags Only";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, page, 20);
-                        answerPrefixCallbackQuery = "tgr";
+                        answerPrefixCallbackQuery = "tgr:t";
                     }
                     case "tags-my-blog" -> {
                         msg = "My tags Blog";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, page, 20);
-                        answerPrefixCallbackQuery = "tgr";
+                        answerPrefixCallbackQuery = "tgr:b";
                     }
                 }
 
@@ -280,7 +394,8 @@ public class UpdateHandlingService {
                     buttonCaption = buttonCaption.substring(14);
                 }
                 InlineKeyboardButton button =
-                        new InlineKeyboardButton(buttonCaption, answerPrefixCallbackQuery + ":" + tag.getId(), "");
+                        new InlineKeyboardButton(buttonCaption,
+                                answerPrefixCallbackQuery + ":" + page + ":" + tag.getId(), "");
                 buttons[i][j] = button;
             }
         }
