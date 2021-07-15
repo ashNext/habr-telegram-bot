@@ -117,9 +117,11 @@ public class UpdateHandlingService {
         final User user = userService.getByTelegramUserId(callbackQuery.getUser().getId());
         final String cbqData = callbackQuery.getData();
         final Message cbqMessage = callbackQuery.getMessage();
+        final int chatId = cbqMessage.getChat().getId();
+        final int messageId = cbqMessage.getMessageId();
 
         if (cbqData.equalsIgnoreCase("delete") || cbqData.equalsIgnoreCase("close")) {
-            tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
+            tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
             tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(),
                     cbqData.equalsIgnoreCase("delete") ? "Deleted" : "");
         } else if (cbqData.equalsIgnoreCase("read-later")) {
@@ -134,7 +136,7 @@ public class UpdateHandlingService {
             final Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
             if (optPost.isPresent()) {
                 if (readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader())) != null) {
-                    tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
+                    tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
                     tgmBotService.getTgmBot().answerCallbackQuery(
                             callbackQuery.getId(),
                             "Post has been moved to the list Read Later");
@@ -154,7 +156,7 @@ public class UpdateHandlingService {
                     readLaterService.getByUUID(UUID.fromString(cbqData.substring(3)));
             if (optReadLater.isPresent()) {
                 tgmBotService.getTgmBot().sendMessage(
-                        cbqMessage.getChat().getId(),
+                        chatId,
                         optReadLater.get().getPostUrl(),
                         getButtonsForPostFromReadLater());
                 tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
@@ -183,8 +185,6 @@ public class UpdateHandlingService {
                 tgmBotService.getTgmBot()
                         .answerCallbackQuery(callbackQuery.getId(), "Tag " + addedTag.get().getName() + " added");
 
-
-                tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
 
                 int page = Integer.parseInt(data.get(2));
 
@@ -218,9 +218,7 @@ public class UpdateHandlingService {
                 } else {
                     msg = msg + " [empty]";
                 }
-                tgmBotService.getTgmBot().sendMessage(
-                        cbqMessage.getChat().getId(),
-                        msg,
+                tgmBotService.getTgmBot().editMessageText(chatId, messageId, msg,
                         getTagsButtons(pageTags, page, answerPrefixCallbackQuery, buttonData));
 
 
@@ -236,8 +234,6 @@ public class UpdateHandlingService {
                 tgmBotService.getTgmBot()
                         .answerCallbackQuery(callbackQuery.getId(), "Tag " + removedTag.get().getName() + " removed");
 
-
-                tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
 
                 int page = Integer.parseInt(data.get(2));
 
@@ -271,9 +267,8 @@ public class UpdateHandlingService {
                 } else {
                     msg = msg + " [empty]";
                 }
-                tgmBotService.getTgmBot().sendMessage(
-                        cbqMessage.getChat().getId(),
-                        msg,
+
+                tgmBotService.getTgmBot().editMessageText(chatId, messageId, msg,
                         getTagsButtons(pageTags, page, answerPrefixCallbackQuery, buttonData));
 
 
@@ -281,12 +276,8 @@ public class UpdateHandlingService {
                 tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
             }
         } else if (cbqData.startsWith("tags-")) {
-            tgmBotService.getTgmBot().deleteMessage(cbqMessage.getChat().getId(), cbqMessage.getMessageId());
             if (cbqData.equalsIgnoreCase("tags-menu")) {
-                tgmBotService.getTgmBot().sendMessage(
-                        cbqMessage.getChat().getId(),
-                        "Tag management:",
-                        getTagButtons());
+                tgmBotService.getTgmBot().editMessageText(chatId, messageId, "Tag management:", getTagButtons());
             } else {
                 List<String> dataList = Arrays.stream(cbqData.split(":")).toList();
                 String data = dataList.get(0);
@@ -333,9 +324,7 @@ public class UpdateHandlingService {
                 } else {
                     msg = msg + " [empty]";
                 }
-                tgmBotService.getTgmBot().sendMessage(
-                        cbqMessage.getChat().getId(),
-                        msg,
+                tgmBotService.getTgmBot().editMessageText(chatId, messageId, msg,
                         getTagsButtons(pageTags, page, answerPrefixCallbackQuery, data));
             }
             tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");

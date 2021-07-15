@@ -168,4 +168,19 @@ public class TgmBot {
         }
         return Optional.empty();
     }
+
+    public Optional<ResponseMessage> editMessageText(int chatId, int messageId, String text,
+                                                     InlineKeyboardMarkup replyMarkup) {
+        try {
+            Call call = getCall("editMessageText",
+                    Map.of("chat_id", String.valueOf(chatId),
+                            "message_id", String.valueOf(messageId),
+                            "text", text,
+                            "reply_markup", mapper.writeValueAsString(replyMarkup)));
+            return getResponse(call, ResponseMessage.class);
+        } catch (JsonProcessingException e) {
+            log.error("Invalid write to JSON", e);
+        }
+        return Optional.empty();
+    }
 }
