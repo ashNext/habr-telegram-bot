@@ -26,6 +26,9 @@ public class Message {
     @JsonProperty("forward_date")
     private Integer forwardDate;
 
+    @JsonProperty("edit_date")
+    private Integer editDate;
+
     private String text;
 
     private MessageEntity[] entities;

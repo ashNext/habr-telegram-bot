@@ -1,10 +1,6 @@
 package ashnext.telegram.api;
 
-import ashnext.telegram.api.response.ResponseBoolean;
-import ashnext.telegram.api.response.ResponseMessageId;
-import ashnext.telegram.api.response.ResponseMessage;
-import ashnext.telegram.api.response.ResponseUpdates;
-import ashnext.telegram.api.response.TgmResponse;
+import ashnext.telegram.api.response.*;
 import ashnext.telegram.api.types.BotCommand;
 import ashnext.telegram.api.types.InlineKeyboardMarkup;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -158,5 +154,18 @@ public class TgmBot {
                         "message_id", String.valueOf(messageId)));
 
         return getResponse(call, ResponseMessage.class);
+    }
+
+    public Optional<ResponseMessage> editMessageReplyMarkup(int chatId, int messageId, InlineKeyboardMarkup replyMarkup) {
+        try {
+            Call call = getCall("editMessageReplyMarkup",
+                    Map.of("chat_id", String.valueOf(chatId),
+                            "message_id", String.valueOf(messageId),
+                            "reply_markup", mapper.writeValueAsString(replyMarkup)));
+            return getResponse(call, ResponseMessage.class);
+        } catch (JsonProcessingException e) {
+            log.error("Invalid write to JSON", e);
+        }
+        return Optional.empty();
     }
 }
