@@ -31,6 +31,7 @@ public class User extends BaseEntity {
     @Column(name = "tags")
     @ElementCollection(targetClass = Tag.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "user_tags", joinColumns = @JoinColumn(name = "user_id"))
+    @OrderBy("name ASC")
     private List<Tag> tags;
 
     public User(Long telegramUserId, Integer telegramChatId) {

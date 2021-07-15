@@ -61,6 +61,7 @@ public class UpdateHandlingService {
                 msg = "You unsubscribed";
                 log.info("User ({}) unsubscribed", user);
             } else if (message.getText().equalsIgnoreCase("/rlater")) {
+                tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
                 buttons = getReadLaterButtons(user);
 
                 msg = "List Read later:";
@@ -195,7 +196,7 @@ public class UpdateHandlingService {
                     case "t" -> {
                         msg = "Without my common\n(click to add)";
                         pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, page, 20);
-                        if (pageTags!=null &&page>pageTags.getTotalPages()-1) {
+                        if (pageTags != null && page > pageTags.getTotalPages() - 1) {
                             pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.COMMON, --page, 20);
                         }
                         answerPrefixCallbackQuery = "tgw:t";
@@ -204,7 +205,7 @@ public class UpdateHandlingService {
                     case "b" -> {
                         msg = "Without my company blogs\n(click to add)";
                         pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, page, 20);
-                        if (pageTags!=null && page>pageTags.getTotalPages()-1) {
+                        if (pageTags != null && page > pageTags.getTotalPages() - 1) {
                             pageTags = tagService.getWithoutUserTags(user.getId(), TagGroup.BLOG, --page, 20);
                         }
                         answerPrefixCallbackQuery = "tgw:b";
@@ -221,7 +222,6 @@ public class UpdateHandlingService {
                         cbqMessage.getChat().getId(),
                         msg,
                         getTagsButtons(pageTags, page, answerPrefixCallbackQuery, buttonData));
-
 
 
             } else {
@@ -249,7 +249,7 @@ public class UpdateHandlingService {
                     case "t" -> {
                         msg = "My common\n(click to remove)";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, page, 20);
-                        if (pageTags!=null &&page>pageTags.getTotalPages()-1) {
+                        if (pageTags != null && page > pageTags.getTotalPages() - 1) {
                             pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.COMMON, --page, 20);
                         }
                         answerPrefixCallbackQuery = "tgr:t";
@@ -258,8 +258,8 @@ public class UpdateHandlingService {
                     case "b" -> {
                         msg = "My company blogs\n(click to remove)";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, page, 20);
-                        if (pageTags!=null && page>pageTags.getTotalPages()-1) {
-                                pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, --page, 20);
+                        if (pageTags != null && page > pageTags.getTotalPages() - 1) {
+                            pageTags = userService.getByIdAndTagGroup(user.getId(), TagGroup.BLOG, --page, 20);
                         }
                         answerPrefixCallbackQuery = "tgr:b";
                         buttonData = "tags-my-blog";
@@ -275,8 +275,6 @@ public class UpdateHandlingService {
                         cbqMessage.getChat().getId(),
                         msg,
                         getTagsButtons(pageTags, page, answerPrefixCallbackQuery, buttonData));
-
-
 
 
             } else {
@@ -346,7 +344,7 @@ public class UpdateHandlingService {
 
     private InlineKeyboardMarkup getReadLaterButtons(User user) {
         List<ReadLater> readLaterList = readLaterService.getAllByUser(user);
-        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[readLaterList.size()][1];
+        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[readLaterList.size() + 1][1];
 
         for (int i = 0; i < readLaterList.size(); i++) {
             InlineKeyboardButton button =
@@ -356,6 +354,8 @@ public class UpdateHandlingService {
                             "");
             buttons[i][0] = button;
         }
+
+        buttons[readLaterList.size()][0] = new InlineKeyboardButton("\uD83C\uDD91 Close", "close", "");
 
         return new InlineKeyboardMarkup(buttons);
     }
@@ -407,20 +407,20 @@ public class UpdateHandlingService {
         if (pageTags != null && pageTags.getTotalPages() != 0) {
             buttons[kbCountLines] = new InlineKeyboardButton[6];
             buttons[kbCountLines][4] = new InlineKeyboardButton(
-                    page == pageTags.getTotalPages() - 1 ? "" : ">", callbackData + (page + 1), "");
+                    page == pageTags.getTotalPages() - 1 ? "" : "\u25B6", callbackData + (page + 1), "");
             buttons[kbCountLines][5] = new InlineKeyboardButton(
-                    page == pageTags.getTotalPages() - 1 ? "" : ">>",
+                    page == pageTags.getTotalPages() - 1 ? "" : "\u23E9",
                     callbackData + (pageTags.getTotalPages() - 1), "");
         } else {
             buttons[kbCountLines] = new InlineKeyboardButton[4];
         }
 
         buttons[kbCountLines][0] = new InlineKeyboardButton(
-                page == 0 ? "" : "<<", callbackData + 0, "");
+                page == 0 ? "" : "\u23EA", callbackData + 0, "");
         buttons[kbCountLines][1] = new InlineKeyboardButton(
-                page == 0 ? "" : "<", callbackData + (page - 1), "");
-        buttons[kbCountLines][2] = new InlineKeyboardButton("Back", "tags-menu", "");
-        buttons[kbCountLines][3] = new InlineKeyboardButton("Close", "close", "");
+                page == 0 ? "" : "\u25C0", callbackData + (page - 1), "");
+        buttons[kbCountLines][2] = new InlineKeyboardButton("\u21A9", "tags-menu", "");
+        buttons[kbCountLines][3] = new InlineKeyboardButton("\uD83C\uDD91", "close", "");
 
         return new InlineKeyboardMarkup(buttons);
     }
@@ -436,7 +436,7 @@ public class UpdateHandlingService {
                 new InlineKeyboardButton("My common", "tags-my-tag:0", ""),
                 new InlineKeyboardButton("My company blogs", "tags-my-blog:0", "")
         }, {
-                new InlineKeyboardButton("Close", "close", "")
+                new InlineKeyboardButton("\uD83C\uDD91 Close", "close", "")
         }};
 
         return new InlineKeyboardMarkup(buttons);
