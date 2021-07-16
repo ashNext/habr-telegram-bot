@@ -64,7 +64,13 @@ public class TagService {
     }
 
     public Page<Tag> getWithoutUserTags(UUID userId, TagGroup tagGroup, int page, int size) {
-        return tagRepository.findWithoutUserTagsByUserIdAndTagGroup(userId, tagGroup.name(), PageRequest.of(page, size));
+        Page<Tag> tagPage = tagRepository.findWithoutUserTagsByUserIdAndTagGroup(
+                userId, tagGroup.name(), PageRequest.of(page, size));
+        if (page > tagPage.getTotalPages() - 1) {
+            return tagRepository.findWithoutUserTagsByUserIdAndTagGroup(
+                    userId, tagGroup.name(), PageRequest.of(--page, size));
+        }
+        return tagPage;
     }
 
     public Page<Tag> getAllCommon(int page, int size) {

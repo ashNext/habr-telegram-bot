@@ -71,7 +71,13 @@ public class UserService {
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), tags.size());
 
-            return new PageImpl<Tag>(
+            if (tags.subList(start, end).isEmpty()) {
+                pageable = PageRequest.of(--page, size, Sort.by(Sort.Direction.ASC, "name"));
+                start = (int) pageable.getOffset();
+                end = Math.min((start + pageable.getPageSize()), tags.size());
+            }
+
+            return new PageImpl<>(
                     tags.subList(start, end),
                     pageable,
                     tags.size());
