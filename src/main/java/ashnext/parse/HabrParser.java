@@ -53,8 +53,10 @@ public class HabrParser {
         String title = getTextElement(spanElement);
 
         //tags
-        List<String> tags = articleSnippetElement.getElementsByClass("tm-article-snippet__hubs-item").stream()
-                .map(Element::text).collect(Collectors.toList());
+        List<String> tags = articleSnippetElement.getElementsByClass("tm-article-snippet__hubs-item")
+                .stream()
+                .map(element ->  getElementByTag(element, "span").text())
+                .collect(Collectors.toList());
 
         //body
         Element postContentBody = postHtml.getElementById("post-content-body");
@@ -126,7 +128,8 @@ public class HabrParser {
                     //tags
                     List<String> tags = articleSnippetElement.getElementsByClass("tm-article-snippet__hubs-item")
                             .stream()
-                            .map(Element::text).collect(Collectors.toList());
+                            .map(element ->  getElementByTag(element, "span").text())
+                            .collect(Collectors.toList());
 
                     return new Post(url, title, time, tags, null);
                 }).collect(Collectors.toList());
