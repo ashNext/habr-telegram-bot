@@ -146,6 +146,7 @@ public class HabrParser {
 
     private static Element getElementByTag(Element element, String tagName) {
         Elements elements = element.getElementsByTag(tagName);
+        elements.remove(element);
         if (elements.isEmpty()) {
             throw new HabrParserException(
                     String.format("In element '%s' no element was found by tag '%s'", element.nodeName(), tagName));
