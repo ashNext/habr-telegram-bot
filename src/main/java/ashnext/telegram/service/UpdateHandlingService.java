@@ -1,5 +1,10 @@
 package ashnext.telegram.service;
 
+import ashnext.control.ActionTagButton;
+import ashnext.control.GroupTag;
+import ashnext.control.TypeTag;
+import ashnext.control.button.TagButton;
+import ashnext.control.button.UtilTagButton;
 import ashnext.model.ReadLater;
 import ashnext.model.Tag;
 import ashnext.model.TagGroup;
@@ -14,7 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -170,34 +178,32 @@ public class UpdateHandlingService {
             String answerCallbackQueryText = "";
             String captionMenu;
             InlineKeyboardMarkup keyboard;
-            List<String> dataList = Arrays.stream(cbqData.split(":")).toList();
 
-            if (dataList.get(1).equals("men")) {
+            if (cbqData.startsWith("tg:men")) {
                 captionMenu = "Tag management";
                 keyboard = getTagManagementButtons();
             } else {
+                TagButton pressedButton = UtilTagButton.getButton(cbqData);
                 Page<Tag> pageTags = null;
-                int page = Integer.parseInt(dataList.get(4));
-                String tagsButtonsData = "";
-                String controlButtonsData = "";
+                int page = pressedButton.getPage();
 
-                switch (dataList.get(3)) {
-                    case "a" -> {
+                switch (pressedButton.getActionTagButton()) {
+                    case ADD -> {
                         Optional<Tag> addedTag = userService
-                                .addTagByUserIdAndTagId(user.getId(), UUID.fromString(dataList.get(5)));
+                                .addTagByUserIdAndTagId(user.getId(), UUID.fromString(pressedButton.getData()));
 
                         answerCallbackQueryText = addedTag
                                 .map(tag -> "Tag " + tag.getName() + " added")
                                 .orElse("The tag has already been added");
-                        if (cbqData.startsWith("tg:all:")) {
+                        if (pressedButton.getGroupTag() == GroupTag.ALL_TAGS) {
                             tgmBotService.getTgmBot().
                                     answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
                             return;
                         }
                     }
-                    case "r" -> {
+                    case REMOVE -> {
                         Optional<Tag> removedTag = userService
-                                .removeTagByUserIdAndTagId(user.getId(), UUID.fromString(dataList.get(5)));
+                                .removeTagByUserIdAndTagId(user.getId(), UUID.fromString(pressedButton.getData()));
 
                         answerCallbackQueryText = removedTag
                                 .map(tag -> "Tag " + tag.getName() + " removed")
@@ -206,7 +212,7 @@ public class UpdateHandlingService {
                 }
 
                 TagGroup tagGroup;
-                if ("b".equals(dataList.get(2))) {
+                if (pressedButton.getTypeTag() == TypeTag.BLOG) {
                     captionMenu = "company blogs";
                     tagGroup = TagGroup.BLOG;
                 } else {
@@ -214,24 +220,18 @@ public class UpdateHandlingService {
                     tagGroup = TagGroup.COMMON;
                 }
 
-                switch (dataList.get(1)) {
-                    case "all" -> {
+                switch (pressedButton.getGroupTag()) {
+                    case ALL_TAGS -> {
                         captionMenu = "All " + captionMenu + "\n(click to add)";
                         pageTags = tagService.getAllByTagGroup(tagGroup, page, 20);
-                        controlButtonsData = "tg:all:" + dataList.get(2);
-                        tagsButtonsData = controlButtonsData + ":a";
                     }
-                    case "wom" -> {
+                    case WITHOUT_MY_TAGS -> {
                         captionMenu = "Without my " + captionMenu + "\n(click to add)";
                         pageTags = tagService.getWithoutUserTags(user.getId(), tagGroup, page, 20);
-                        controlButtonsData = "tg:wom:" + dataList.get(2);
-                        tagsButtonsData = controlButtonsData + ":a";
                     }
-                    case "my" -> {
+                    case MY_TAGS -> {
                         captionMenu = "My " + captionMenu + "\n(click to remove)";
                         pageTags = userService.getByIdAndTagGroup(user.getId(), tagGroup, page, 20);
-                        controlButtonsData = "tg:my:" + dataList.get(2);
-                        tagsButtonsData = controlButtonsData + ":r";
                     }
                 }
 
@@ -242,7 +242,7 @@ public class UpdateHandlingService {
                     captionMenu = captionMenu + " [empty]";
                 }
 
-                keyboard = getTagsPageableButtons(pageTags, tagsButtonsData, controlButtonsData + ":s");
+                keyboard = getTagsPageableButtons(pageTags, pressedButton);
             }
 
             tgmBotService.getTgmBot().editMessageText(chatId, messageId, captionMenu, keyboard);
@@ -278,9 +278,14 @@ public class UpdateHandlingService {
         return new InlineKeyboardMarkup(buttons);
     }
 
-    private InlineKeyboardMarkup getTagsPageableButtons(Page<Tag> pageTags,
-                                                        String answerPrefixCallbackQuery,
-                                                        String buttonPrefixCallbackQuery) {
+    private InlineKeyboardMarkup getTagsPageableButtons(Page<Tag> pageTags, TagButton pressedTagButton) {
+        ActionTagButton action;
+        switch (pressedTagButton.getGroupTag()) {
+            case ALL_TAGS, WITHOUT_MY_TAGS -> action = ActionTagButton.ADD;
+            case MY_TAGS -> action = ActionTagButton.REMOVE;
+            default -> throw new IllegalStateException("Unexpected value: " + pressedTagButton.getGroupTag());
+        }
+
         List<Tag> tags;
         int page = 0;
         if (pageTags != null && pageTags.hasContent()) {
@@ -307,30 +312,42 @@ public class UpdateHandlingService {
                 if (buttonCaption.startsWith("Блог компании")) {
                     buttonCaption = buttonCaption.substring(14);
                 }
+
                 InlineKeyboardButton button =
                         new InlineKeyboardButton(buttonCaption,
-                                answerPrefixCallbackQuery + ":" + page + ":" + tag.getId(), "");
+                                TagButton.newBuilder()
+                                        .setGroup(pressedTagButton.getGroupTag())
+                                        .setType(pressedTagButton.getTypeTag())
+                                        .setAction(action)
+                                        .setPage(page)
+                                        .setData(tag.getId().toString())
+                                        .build().toString(),
+                                ""
+                        );
                 buttons[i][j] = button;
             }
         }
 
-        String callbackData = buttonPrefixCallbackQuery + ":";
+        TagButton.Builder controlButtonBuilder = TagButton.newBuilder()
+                .setGroup(pressedTagButton.getGroupTag())
+                .setType(pressedTagButton.getTypeTag())
+                .setActionShow();
 
         if (pageTags != null && pageTags.getTotalPages() != 0) {
             buttons[kbCountLines] = new InlineKeyboardButton[6];
             buttons[kbCountLines][4] = new InlineKeyboardButton(
-                    pageTags.isLast() ? "" : "\u25B6", callbackData + (page + 1), "");
+                    pageTags.isLast() ? "" : "\u25B6", controlButtonBuilder.setPage(page + 1).build().toString(), "");
             buttons[kbCountLines][5] = new InlineKeyboardButton(
                     pageTags.isLast() ? "" : "\u23E9",
-                    callbackData + (pageTags.getTotalPages() - 1), "");
+                    controlButtonBuilder.setPage(pageTags.getTotalPages() - 1).build().toString(), "");
         } else {
             buttons[kbCountLines] = new InlineKeyboardButton[4];
         }
 
         buttons[kbCountLines][0] = new InlineKeyboardButton(
-                page == 0 ? "" : "\u23EA", callbackData + 0, "");
+                page == 0 ? "" : "\u23EA", controlButtonBuilder.setPage(0).build().toString(), "");
         buttons[kbCountLines][1] = new InlineKeyboardButton(
-                page == 0 ? "" : "\u25C0", callbackData + (page - 1), "");
+                page == 0 ? "" : "\u25C0", controlButtonBuilder.setPage(page - 1).build().toString(), "");
         buttons[kbCountLines][2] = new InlineKeyboardButton("\u21A9", "tg:men", "");
         buttons[kbCountLines][3] = new InlineKeyboardButton("\uD83C\uDD91", "close", "");
 
@@ -339,14 +356,22 @@ public class UpdateHandlingService {
 
     private InlineKeyboardMarkup getTagManagementButtons() {
         InlineKeyboardButton[][] buttons = new InlineKeyboardButton[][]{{
-                new InlineKeyboardButton("All common", "tg:all:c:s:0", ""),
-                new InlineKeyboardButton("All company blogs", "tg:all:b:s:0", ""),
+                new InlineKeyboardButton("All common",
+                        TagButton.newBuilder().setGroupAll().setTypeCommon().setActionShow().build().toString(), ""),
+                new InlineKeyboardButton("All company blogs",
+                        TagButton.newBuilder().setGroupAll().setTypeBlog().setActionShow().build().toString(), ""),
         }, {
-                new InlineKeyboardButton("Without my common", "tg:wom:c:s:0", ""),
-                new InlineKeyboardButton("Without my company blogs", "tg:wom:b:s:0", ""),
+                new InlineKeyboardButton("Without my common",
+                        TagButton.newBuilder().setGroupWithoutMy().setTypeCommon().setActionShow().build().toString(),
+                        ""),
+                new InlineKeyboardButton("Without my company blogs",
+                        TagButton.newBuilder().setGroupWithoutMy().setTypeBlog().setActionShow().build().toString(),
+                        ""),
         }, {
-                new InlineKeyboardButton("My common", "tg:my:c:s:0", ""),
-                new InlineKeyboardButton("My company blogs", "tg:my:b:s:0", "")
+                new InlineKeyboardButton("My common",
+                        TagButton.newBuilder().setGroupMy().setTypeCommon().setActionShow().build().toString(), ""),
+                new InlineKeyboardButton("My company blogs",
+                        TagButton.newBuilder().setGroupMy().setTypeBlog().setActionShow().build().toString(), "")
         }, {
                 new InlineKeyboardButton("\uD83C\uDD91 Close", "close", "")
         }};
