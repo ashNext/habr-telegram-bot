@@ -62,17 +62,11 @@ public class ParseHabrService {
     public Optional<Post> parseAndGetPost(String postUrl) {
         try {
             Document postHtml = Jsoup.connect(postUrl).get();
+
             try {
-                return Optional.of(HabrParser.parseOldPost(postHtml, postUrl));
+                return Optional.of(HabrParser.parseNewPost(postHtml, postUrl));
             } catch (HabrParserException e) {
-                log.warn("Warning in parseAndGetPost: "
-                        + "Failed to parse the Old version of the post ({}): ", postUrl);
-                try {
-                    return Optional.of(HabrParser.parseNewPost(postHtml, postUrl));
-                } catch (HabrParserException ee) {
-                    log.warn(String.format("Warning in parseAndGetPost: "
-                            + "Failed to parse the Old and New versions of the post (%s): ", postUrl), ee);
-                }
+                log.warn("Warning in parseAndGetPost: Failed to parse the post ({}): ", postUrl);
             }
         } catch (IOException ioException) {
             log.warn(String.format("Error in parseAndGetPost when getting the document (%s): ", postUrl), ioException);
@@ -86,18 +80,10 @@ public class ParseHabrService {
             Document html = Jsoup.connect(pageUrl).get();
 
             try {
-                return HabrParser.parsePostsOnOldPage(html);
+                return HabrParser.parsePostsOnNewPage(html);
             } catch (HabrParserException e) {
-                log.warn("Warning in parseAndGetPostsOnPage: "
-                        + "Failed to parse the Old version of the site ({}): ", pageUrl);
-                try {
-                    return HabrParser.parsePostsOnNewPage(html);
-                } catch (HabrParserException ee) {
-                    log.warn(String.format("Warning in parseAndGetPostsOnPage: "
-                            + "Failed to parse the Old and New versions of the site (%s): ", pageUrl), ee);
-                }
+                log.warn("Warning in parseAndGetPostsOnPage: Failed to parse the site ({}): ", pageUrl);
             }
-
         } catch (IOException ioException) {
             log.warn(String.format("Warning in parseAndGetUrlsOnPage when getting the document (%s): ", pageUrl),
                     ioException);

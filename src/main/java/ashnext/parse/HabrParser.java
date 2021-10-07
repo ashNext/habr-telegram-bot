@@ -35,10 +35,10 @@ public class HabrParser {
 
     public static Post parseNewPost(Document postHtml, String postUrl) {
         Element articleElement = getElementByClass(postHtml,
-                "tm-page-article__content tm-page-article__content_inner");
+                "tm-article-presenter__content tm-article-presenter__content_narrow");
 
         Element articleSnippetElement = getElementByClass(articleElement,
-                "tm-article-snippet tm-page-article__snippet");
+                "tm-article-snippet tm-article-presenter__snippet");
 
         //time
         Element datetimePublishedElement = getElementByClass(articleSnippetElement,
@@ -59,7 +59,7 @@ public class HabrParser {
                 .collect(Collectors.toList());
 
         //body
-        Element postContentBody = postHtml.getElementById("post-content-body");
+        Element postContentBody = articleElement.getElementById("post-content-body");
         if (postContentBody == null) {
             throw new HabrParserException("No element 'post-content-body'");
         }
