@@ -13,6 +13,7 @@ import ashnext.parse.model.Post;
 import ashnext.service.ReadLaterService;
 import ashnext.service.TagService;
 import ashnext.service.UserService;
+import ashnext.telegram.api.TgmBot;
 import ashnext.telegram.api.types.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -158,6 +159,7 @@ public class UpdateHandlingService {
             readLaterService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
                     readLater -> readLaterService.delete(readLater.getId())
             );
+            tgmBotService.getTgmBot().editMessageText(chatId, messageId, cbqMessage.getText(), TgmBot.INLINE_KEYBOARD_MARKUP_POST_NORMAL);
             tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Remove from the list Read later");
         } else if (cbqData.startsWith("rl:")) {
             Optional<ReadLater> optReadLater =
@@ -166,8 +168,9 @@ public class UpdateHandlingService {
                 tgmBotService.getTgmBot().sendMessage(
                         chatId,
                         optReadLater.get().getPostUrl(),
-                        getButtonsForPostFromReadLater());
+                        TgmBot.INLINE_KEYBOARD_MARKUP_POST_READ_LATER);
                 tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+                tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
             } else {
                 tgmBotService.getTgmBot().answerCallbackQuery(
                         callbackQuery.getId(),
@@ -265,15 +268,6 @@ public class UpdateHandlingService {
         }
 
         buttons[readLaterList.size()][0] = new InlineKeyboardButton("\uD83C\uDD91 Close", "close", "");
-
-        return new InlineKeyboardMarkup(buttons);
-    }
-
-    private InlineKeyboardMarkup getButtonsForPostFromReadLater() {
-        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[][]{{
-                new InlineKeyboardButton("\uD83D\uDCE4", "remove-read-later", ""),
-                new InlineKeyboardButton("\uD83D\uDDD1", "delete", "")
-        }};
 
         return new InlineKeyboardMarkup(buttons);
     }

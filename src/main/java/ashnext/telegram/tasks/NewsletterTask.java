@@ -4,8 +4,7 @@ import ashnext.model.Tag;
 import ashnext.model.User;
 import ashnext.parse.model.Post;
 import ashnext.service.UserService;
-import ashnext.telegram.api.types.InlineKeyboardButton;
-import ashnext.telegram.api.types.InlineKeyboardMarkup;
+import ashnext.telegram.api.TgmBot;
 import ashnext.telegram.service.ParseHabrService;
 import ashnext.telegram.service.TgmBotService;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +24,6 @@ public class NewsletterTask {
     private final UserService userService;
 
     private final TgmBotService tgmBotService;
-
-    private final InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(
-            new InlineKeyboardButton[][]{{
-                    new InlineKeyboardButton("\uD83D\uDCE5", "read-later", ""),
-                    new InlineKeyboardButton("\uD83D\uDDD1", "delete", "")
-            }}
-    );
 
     @Scheduled(fixedDelayString = "${bot.scheduled.new-posts}")
     public void newsletter() {
@@ -58,7 +50,7 @@ public class NewsletterTask {
                                     tgmBotService.getTgmBot().sendMessage(
                                             user.getTelegramChatId(),
                                             post.getUrl(),
-                                            inlineKeyboardMarkup);
+                                            TgmBot.INLINE_KEYBOARD_MARKUP_POST_NORMAL);
                                 }
                             }
                     )
