@@ -22,10 +22,10 @@ public class TgmBot {
     private final static String TGM_URL_API = "https://api.telegram.org";
 
     private final static List<BotCommand> COMMANDS_LIST = List.of(
-            new BotCommand("/sub", "Subscribe to articles"),
-            new BotCommand("/unsub", "Cancel subscription"),
-            new BotCommand("/rlater", "Read later list"),
-            new BotCommand("/tags", "Tag management")
+            new BotCommand(Command.SUB.getCommand(), "Subscribe to articles"),
+            new BotCommand(Command.UNSUB.getCommand(), "Cancel subscription"),
+            new BotCommand(Command.READ_LATER.getCommand(), "Read later list"),
+            new BotCommand(Command.TAGS.getCommand(), "Tag management")
     );
 
     private final OkHttpClient client;

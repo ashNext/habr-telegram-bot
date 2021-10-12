@@ -1,13 +1,12 @@
-package ashnext.control.button;
+package ashnext.telegram.control.button;
 
-import ashnext.control.ActionTagButton;
-import ashnext.control.GroupTag;
-import ashnext.control.StartNameButton;
-import ashnext.control.TypeTag;
+import ashnext.telegram.control.ActionTagButton;
+import ashnext.telegram.control.GroupTag;
+import ashnext.telegram.control.StartNameButton;
+import ashnext.telegram.control.TypeTag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @AllArgsConstructor

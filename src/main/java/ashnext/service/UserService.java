@@ -5,6 +5,7 @@ import ashnext.model.TagGroup;
 import ashnext.model.User;
 import ashnext.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class UserService {
 
@@ -23,7 +25,9 @@ public class UserService {
     public User create(User user) {
         user.setActive(true);
         user.setSubscription(false);
-        return userRepository.save(user);
+        User newUser = userRepository.save(user);
+        log.info("Added new user ({})", newUser);
+        return newUser;
     }
 
     public User update(User user) {
@@ -96,6 +100,7 @@ public class UserService {
     public void setActive(User user, boolean active) {
         user.setActive(active);
         userRepository.save(user);
+        log.info("User {}: {}", active ? "enabled" : "disabled", user);
     }
 
     private void setSubscription(User user, boolean subscribe) {
@@ -105,10 +110,12 @@ public class UserService {
 
     public void subscribe(User user) {
         setSubscription(user, true);
+        log.info("User subscribed: {}", user);
     }
 
     public void unsubscribe(User user) {
         setSubscription(user, false);
+        log.info("User unsubscribed: {}", user);
     }
 
     public List<User> getAllActiveAndSubscribe() {

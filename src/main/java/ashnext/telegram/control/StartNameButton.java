@@ -1,4 +1,4 @@
-package ashnext.control;
+package ashnext.telegram.control;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

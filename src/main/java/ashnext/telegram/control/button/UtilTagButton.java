@@ -1,8 +1,8 @@
-package ashnext.control.button;
+package ashnext.telegram.control.button;
 
-import ashnext.control.ActionTagButton;
-import ashnext.control.GroupTag;
-import ashnext.control.TypeTag;
+import ashnext.telegram.control.ActionTagButton;
+import ashnext.telegram.control.GroupTag;
+import ashnext.telegram.control.TypeTag;
 import java.util.Arrays;
 import java.util.List;
 

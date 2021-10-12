@@ -1,10 +1,5 @@
 package ashnext.telegram.service;
 
-import ashnext.control.ActionTagButton;
-import ashnext.control.GroupTag;
-import ashnext.control.TypeTag;
-import ashnext.control.button.TagButton;
-import ashnext.control.button.UtilTagButton;
 import ashnext.model.ReadLater;
 import ashnext.model.Tag;
 import ashnext.model.TagGroup;
@@ -13,8 +8,14 @@ import ashnext.parse.model.Post;
 import ashnext.service.ReadLaterService;
 import ashnext.service.TagService;
 import ashnext.service.UserService;
+import ashnext.telegram.api.Command;
 import ashnext.telegram.api.TgmBot;
 import ashnext.telegram.api.types.*;
+import ashnext.telegram.control.ActionTagButton;
+import ashnext.telegram.control.GroupTag;
+import ashnext.telegram.control.TypeTag;
+import ashnext.telegram.control.button.TagButton;
+import ashnext.telegram.control.button.UtilTagButton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -48,46 +49,52 @@ public class UpdateHandlingService {
         InlineKeyboardMarkup buttons = new InlineKeyboardMarkup();
 
         User user = userService.getByTelegramUserId(tgmUserId);
-        if (message.getText().equalsIgnoreCase("/start")) {
+
+        Command command = Command.valueOfCommand(message.getText());
+
+        if (command == Command.START) {
             if (user != null) {
                 msg = String.format("Welcome back, %s!", firstName);
-                log.info("Registered user (tgmUserId={}) went to /start", tgmUserId);
+                log.info("Registered user (tgmUserId={}) went to {}", tgmUserId, Command.START.getCommand());
             } else {
-                user = userService.create(new User(tgmUserId, message.getChat().getId()));
+                userService.create(new User(tgmUserId, message.getChat().getId()));
                 msg = String.format("Hi, %s!", firstName);
-                log.info("Added new user ({})", user);
             }
+        } else if (user == null) {
+            msg = "You are not registered. Go to " + Command.START.getCommand();
+            log.warn("User with tgmUserId={} is not registered", tgmUserId);
         } else {
-            if (user == null) {
-                msg = "You are not registered. Go to /start";
-                log.info("User with tgmUserId={} is not registered", tgmUserId);
-            } else if (message.getText().equalsIgnoreCase("/sub")) {
-                userService.subscribe(user);
-                msg = "You subscribed";
-                log.info("User ({}) subscribed", user);
-            } else if (message.getText().equalsIgnoreCase("/unsub")) {
-                userService.unsubscribe(user);
-                msg = "You unsubscribed";
-                log.info("User ({}) unsubscribed", user);
-            } else if (message.getText().equalsIgnoreCase("/rlater")) {
-                tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
-                buttons = getReadLaterButtons(user);
-
-                msg = "List Read later:";
-                if (buttons.getInlineKeyboard().length == 0) {
-                    msg = msg + " empty";
+            switch (command) {
+                case SUB -> {
+                    userService.subscribe(user);
+                    msg = "You subscribed";
                 }
-            } else if (message.getText().equalsIgnoreCase("/tags")) {
-                tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
-                buttons = getTagManagementButtons();
-
-                msg = "Tag management:";
-                if (buttons.getInlineKeyboard().length == 0) {
-                    msg = msg + " empty";
+                case UNSUB -> {
+                    userService.unsubscribe(user);
+                    msg = "You unsubscribed";
                 }
-            } else {
-                msg = "I don't understand yet ((";
-                log.warn("Unprocessed user (tgmUserId={}) message '{}'", tgmUserId, message.getText());
+                case READ_LATER -> {
+                    tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
+                    buttons = getReadLaterButtons(user);
+
+                    msg = "List Read later:";
+                    if (buttons.getInlineKeyboard().length == 0) {
+                        msg = msg + " empty";
+                    }
+                }
+                case TAGS -> {
+                    tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
+                    buttons = getTagManagementButtons();
+
+                    msg = "Tag management:";
+                    if (buttons.getInlineKeyboard().length == 0) {
+                        msg = msg + " empty";
+                    }
+                }
+                default -> {
+                    msg = "I don't understand yet ((";
+                    log.warn("Unprocessed user (tgmUserId={}) message '{}'", tgmUserId, message.getText());
+                }
             }
         }
 
@@ -112,12 +119,10 @@ public class UpdateHandlingService {
                     && newChatMember.getStatus().equalsIgnoreCase("kicked")
                     && user.isActive()) {
                 userService.setActive(user, false);
-                log.info("User (tgmUserId={}) disabled", tgmUserId);
             } else if (oldChatMember.getStatus().equalsIgnoreCase("kicked")
                     && newChatMember.getStatus().equalsIgnoreCase("member")
                     && !user.isActive()) {
                 userService.setActive(user, true);
-                log.info("User (tgmUserId={}) enabled", tgmUserId);
             }
         }
     }
