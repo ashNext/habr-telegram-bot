@@ -9,20 +9,15 @@ import ashnext.service.ReadLaterService;
 import ashnext.service.TagService;
 import ashnext.service.UserService;
 import ashnext.telegram.api.Command;
-import ashnext.telegram.api.TgmBot;
 import ashnext.telegram.api.types.*;
-import ashnext.telegram.control.ActionTagButton;
-import ashnext.telegram.control.GroupTag;
-import ashnext.telegram.control.TypeTag;
-import ashnext.telegram.control.button.TagButton;
-import ashnext.telegram.control.button.UtilTagButton;
+import ashnext.telegram.control.read_later.ReadLaterButton;
+import ashnext.telegram.control.read_later.ReadLaterMenu;
+import ashnext.telegram.control.tag.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -75,7 +70,7 @@ public class UpdateHandlingService {
                 }
                 case READ_LATER -> {
                     tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
-                    buttons = getReadLaterButtons(user);
+                    buttons = ReadLaterMenu.getReadLaterButtons(readLaterService.getAllByUser(user));
 
                     msg = "List Read later:";
                     if (buttons.getInlineKeyboard().length == 0) {
@@ -84,7 +79,7 @@ public class UpdateHandlingService {
                 }
                 case TAGS -> {
                     tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
-                    buttons = getTagManagementButtons();
+                    buttons = TagMenu.getTagManagementButtons();
 
                     msg = "Tag management:";
                     if (buttons.getInlineKeyboard().length == 0) {
@@ -138,60 +133,68 @@ public class UpdateHandlingService {
             tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
             tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(),
                     cbqData.equalsIgnoreCase("delete") ? "Deleted" : "");
-        } else if (cbqData.equalsIgnoreCase("read-later")) {
-            final String postUrl = cbqMessage.getText();
-            if (!readLaterService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
-                tgmBotService.getTgmBot().answerCallbackQuery(
-                        callbackQuery.getId(),
-                        "The post has already been added earlier");
-                return;
-            }
-
-            final Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
-            if (optPost.isPresent()) {
-                if (readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader())) != null) {
-                    tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
-                    tgmBotService.getTgmBot().answerCallbackQuery(
-                            callbackQuery.getId(),
-                            "Post has been moved to the list Read Later");
-                } else {
-                    tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Something went wrong");
-                }
-            } else {
-                tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Error parsing post header ((");
-            }
-        } else if (cbqData.startsWith("remove-read-later")) {
-            readLaterService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
-                    readLater -> readLaterService.delete(readLater.getId())
-            );
-            tgmBotService.getTgmBot().editMessageText(chatId, messageId, cbqMessage.getText(), TgmBot.INLINE_KEYBOARD_MARKUP_POST_NORMAL);
-            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Remove from the list Read later");
         } else if (cbqData.startsWith("rl:")) {
-            Optional<ReadLater> optReadLater =
-                    readLaterService.getByUUID(UUID.fromString(cbqData.substring(3)));
-            if (optReadLater.isPresent()) {
-                tgmBotService.getTgmBot().sendMessage(
-                        chatId,
-                        optReadLater.get().getPostUrl(),
-                        TgmBot.INLINE_KEYBOARD_MARKUP_POST_READ_LATER);
-                tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
-                tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
-            } else {
-                tgmBotService.getTgmBot().answerCallbackQuery(
-                        callbackQuery.getId(),
-                        "Post would be removed from the list Read later");
-            }
+            ReadLaterButton readLaterButton = ReadLaterMenu.getButton(cbqData);
 
+            switch (readLaterButton.getActionReadLaterButton()) {
+                case GET -> {
+                    Optional<ReadLater> optReadLater =
+                            readLaterService.getByUUID(UUID.fromString(readLaterButton.getData()));
+                    if (optReadLater.isPresent()) {
+                        tgmBotService.getTgmBot().sendMessage(
+                                chatId,
+                                optReadLater.get().getPostUrl(),
+                                ReadLaterMenu.getButtonsWithRemove());
+                        tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+                        tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
+                    } else {
+                        tgmBotService.getTgmBot().answerCallbackQuery(
+                                callbackQuery.getId(),
+                                "Post would be removed from the list Read later");
+                    }
+                }
+                case PUT -> {
+                    final String postUrl = cbqMessage.getText();
+                    if (!readLaterService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
+                        tgmBotService.getTgmBot().answerCallbackQuery(
+                                callbackQuery.getId(),
+                                "The post has already been added earlier");
+                        return;
+                    }
+
+                    final Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
+                    if (optPost.isPresent()) {
+                        if (readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader())) != null) {
+                            tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
+                            tgmBotService.getTgmBot().answerCallbackQuery(
+                                    callbackQuery.getId(),
+                                    "Post has been moved to the list Read Later");
+                        } else {
+                            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Something went wrong");
+                        }
+                    } else {
+                        tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Error parsing post header ((");
+                    }
+                }
+                case PULL -> {
+                    readLaterService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
+                            readLater -> readLaterService.delete(readLater.getId())
+                    );
+                    tgmBotService.getTgmBot().editMessageText(chatId, messageId, cbqMessage.getText(), ReadLaterMenu.getButtonsWithAdd());
+                    tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Remove from the list Read later");
+                }
+            }
         } else if (cbqData.startsWith("tg:")) {
             String answerCallbackQueryText = "";
             String captionMenu;
             InlineKeyboardMarkup keyboard;
 
-            if (cbqData.startsWith("tg:men")) {
+            TagButton pressedButton = TagMenu.getButton(cbqData);
+
+            if (pressedButton.getActionTagButton() == ActionTagButton.MANAGEMENT) {
                 captionMenu = "Tag management";
-                keyboard = getTagManagementButtons();
+                keyboard = TagMenu.getTagManagementButtons();
             } else {
-                TagButton pressedButton = UtilTagButton.getButton(cbqData);
                 Page<Tag> pageTags = null;
                 int page = pressedButton.getPage();
 
@@ -250,131 +253,12 @@ public class UpdateHandlingService {
                     captionMenu = captionMenu + " [empty]";
                 }
 
-                keyboard = getTagsPageableButtons(pageTags, pressedButton);
+                keyboard = TagMenu.getTagsPageableButtons(pageTags, pressedButton);
             }
 
             tgmBotService.getTgmBot().editMessageText(chatId, messageId, captionMenu, keyboard);
             tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
         }
 
-    }
-
-    private InlineKeyboardMarkup getReadLaterButtons(User user) {
-        List<ReadLater> readLaterList = readLaterService.getAllByUser(user);
-        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[readLaterList.size() + 1][1];
-
-        for (int i = 0; i < readLaterList.size(); i++) {
-            InlineKeyboardButton button =
-                    new InlineKeyboardButton(
-                            readLaterList.get(i).getPostTitle(),
-                            "rl:" + readLaterList.get(i).getId(),
-                            "");
-            buttons[i][0] = button;
-        }
-
-        buttons[readLaterList.size()][0] = new InlineKeyboardButton("\uD83C\uDD91 Close", "close", "");
-
-        return new InlineKeyboardMarkup(buttons);
-    }
-
-    private InlineKeyboardMarkup getTagsPageableButtons(Page<Tag> pageTags, TagButton pressedTagButton) {
-        ActionTagButton action;
-        switch (pressedTagButton.getGroupTag()) {
-            case ALL_TAGS, WITHOUT_MY_TAGS -> action = ActionTagButton.ADD;
-            case MY_TAGS -> action = ActionTagButton.REMOVE;
-            default -> throw new IllegalStateException("Unexpected value: " + pressedTagButton.getGroupTag());
-        }
-
-        List<Tag> tags;
-        int page = 0;
-        if (pageTags != null && pageTags.hasContent()) {
-            tags = pageTags.getContent();
-            page = pageTags.getNumber();
-        } else {
-            tags = List.of();
-        }
-
-        int kbCountLines = tags.size() % 2 == 0 ? tags.size() / 2 : tags.size() / 2 + 1;
-        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[kbCountLines + 1][];
-
-        Iterator<Tag> iterator = tags.iterator();
-        for (int i = 0; i < kbCountLines; i++) {
-            if (i == kbCountLines - 1 && tags.size() % 2 != 0) {
-                buttons[i] = new InlineKeyboardButton[1];
-            } else {
-                buttons[i] = new InlineKeyboardButton[2];
-            }
-
-            for (int j = 0; j < 2 && iterator.hasNext(); j++) {
-                Tag tag = iterator.next();
-                String buttonCaption = tag.getName();
-                if (buttonCaption.startsWith("Блог компании")) {
-                    buttonCaption = buttonCaption.substring(14);
-                }
-
-                InlineKeyboardButton button =
-                        new InlineKeyboardButton(buttonCaption,
-                                TagButton.newBuilder()
-                                        .setGroup(pressedTagButton.getGroupTag())
-                                        .setType(pressedTagButton.getTypeTag())
-                                        .setAction(action)
-                                        .setPage(page)
-                                        .setData(tag.getId().toString())
-                                        .build().toString(),
-                                ""
-                        );
-                buttons[i][j] = button;
-            }
-        }
-
-        TagButton.Builder controlButtonBuilder = TagButton.newBuilder()
-                .setGroup(pressedTagButton.getGroupTag())
-                .setType(pressedTagButton.getTypeTag())
-                .setActionShow();
-
-        if (pageTags != null && pageTags.getTotalPages() != 0) {
-            buttons[kbCountLines] = new InlineKeyboardButton[6];
-            buttons[kbCountLines][4] = new InlineKeyboardButton(
-                    pageTags.isLast() ? "" : "\u25B6", controlButtonBuilder.setPage(page + 1).build().toString(), "");
-            buttons[kbCountLines][5] = new InlineKeyboardButton(
-                    pageTags.isLast() ? "" : "\u23E9",
-                    controlButtonBuilder.setPage(pageTags.getTotalPages() - 1).build().toString(), "");
-        } else {
-            buttons[kbCountLines] = new InlineKeyboardButton[4];
-        }
-
-        buttons[kbCountLines][0] = new InlineKeyboardButton(
-                page == 0 ? "" : "\u23EA", controlButtonBuilder.setPage(0).build().toString(), "");
-        buttons[kbCountLines][1] = new InlineKeyboardButton(
-                page == 0 ? "" : "\u25C0", controlButtonBuilder.setPage(page - 1).build().toString(), "");
-        buttons[kbCountLines][2] = new InlineKeyboardButton("\u21A9", "tg:men", "");
-        buttons[kbCountLines][3] = new InlineKeyboardButton("\uD83C\uDD91", "close", "");
-
-        return new InlineKeyboardMarkup(buttons);
-    }
-
-    private InlineKeyboardMarkup getTagManagementButtons() {
-        InlineKeyboardButton[][] buttons = new InlineKeyboardButton[][]{{
-                new InlineKeyboardButton("All common",
-                        TagButton.newBuilder().setGroupAll().setTypeCommon().setActionShow().build().toString(), ""),
-                new InlineKeyboardButton("All company blogs",
-                        TagButton.newBuilder().setGroupAll().setTypeBlog().setActionShow().build().toString(), ""),
-        }, {
-                new InlineKeyboardButton("Without my common",
-                        TagButton.newBuilder().setGroupWithoutMy().setTypeCommon().setActionShow().build().toString(),
-                        ""),
-                new InlineKeyboardButton("Without my company blogs",
-                        TagButton.newBuilder().setGroupWithoutMy().setTypeBlog().setActionShow().build().toString(),
-                        ""),
-        }, {
-                new InlineKeyboardButton("My common",
-                        TagButton.newBuilder().setGroupMy().setTypeCommon().setActionShow().build().toString(), ""),
-                new InlineKeyboardButton("My company blogs",
-                        TagButton.newBuilder().setGroupMy().setTypeBlog().setActionShow().build().toString(), "")
-        }, {
-                new InlineKeyboardButton("\uD83C\uDD91 Close", "close", "")
-        }};
-
-        return new InlineKeyboardMarkup(buttons);
     }
 }

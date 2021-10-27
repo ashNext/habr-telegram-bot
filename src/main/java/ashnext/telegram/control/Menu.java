@@ -5,13 +5,14 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public enum StartNameButton {
-    TG("tg");
+public enum Menu {
+    TG("tg"),
+    RL("rl");
 
     private final String text;
 
-    public static StartNameButton fromString(String text) {
-        for (StartNameButton startNameButton : StartNameButton.values()) {
+    public static Menu fromString(String text) {
+        for (Menu startNameButton : Menu.values()) {
             if (startNameButton.text.equalsIgnoreCase(text)) {
                 return startNameButton;
             }

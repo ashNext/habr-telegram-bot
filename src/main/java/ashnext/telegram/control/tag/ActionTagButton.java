@@ -1,4 +1,4 @@
-package ashnext.telegram.control;
+package ashnext.telegram.control.tag;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ActionTagButton {
+    EMPTY(""),
+    MANAGEMENT("man"),
     SHOW("s"),
     ADD("a"),
     REMOVE("r");

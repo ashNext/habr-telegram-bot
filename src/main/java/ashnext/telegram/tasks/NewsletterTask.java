@@ -4,7 +4,7 @@ import ashnext.model.Tag;
 import ashnext.model.User;
 import ashnext.parse.model.Post;
 import ashnext.service.UserService;
-import ashnext.telegram.api.TgmBot;
+import ashnext.telegram.control.read_later.ReadLaterMenu;
 import ashnext.telegram.service.ParseHabrService;
 import ashnext.telegram.service.TgmBotService;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,7 @@ public class NewsletterTask {
                                     tgmBotService.getTgmBot().sendMessage(
                                             user.getTelegramChatId(),
                                             post.getUrl(),
-                                            TgmBot.INLINE_KEYBOARD_MARKUP_POST_NORMAL);
+                                            ReadLaterMenu.getButtonsWithAdd());
                                 }
                             }
                     )

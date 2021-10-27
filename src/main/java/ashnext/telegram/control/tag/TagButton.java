@@ -1,9 +1,6 @@
-package ashnext.telegram.control.button;
+package ashnext.telegram.control.tag;
 
-import ashnext.telegram.control.ActionTagButton;
-import ashnext.telegram.control.GroupTag;
-import ashnext.telegram.control.StartNameButton;
-import ashnext.telegram.control.TypeTag;
+import ashnext.telegram.control.Menu;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TagButton {
 
-    private final StartNameButton startNameButton = StartNameButton.TG;
+    private final Menu tgMenu = Menu.TG;
     private GroupTag groupTag;
     private TypeTag typeTag;
     private ActionTagButton actionTagButton;
@@ -30,7 +27,7 @@ public class TagButton {
 
     @Override
     public String toString() {
-        return startNameButton.getText() +
+        return tgMenu.getText() +
                 ":" + groupTag.getText() +
                 ":" + typeTag.getText() +
                 ":" + actionTagButton.getText() +
@@ -45,6 +42,9 @@ public class TagButton {
     public class Builder {
 
         private Builder() {
+            TagButton.this.groupTag = GroupTag.EMPTY;
+            TagButton.this.typeTag = TypeTag.EMPTY;
+            TagButton.this.actionTagButton = ActionTagButton.EMPTY;
         }
 
         public Builder setGroup(GroupTag groupTag) {
@@ -84,6 +84,11 @@ public class TagButton {
 
         public Builder setAction(ActionTagButton actionTagButton) {
             TagButton.this.actionTagButton = actionTagButton;
+            return this;
+        }
+
+        public Builder setActionManagement() {
+            TagButton.this.actionTagButton = ActionTagButton.MANAGEMENT;
             return this;
         }
 

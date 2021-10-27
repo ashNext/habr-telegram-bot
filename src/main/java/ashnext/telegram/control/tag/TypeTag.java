@@ -1,4 +1,4 @@
-package ashnext.telegram.control;
+package ashnext.telegram.control.tag;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum TypeTag {
+    EMPTY(""),
     COMMON("c"),
     BLOG("b");
 

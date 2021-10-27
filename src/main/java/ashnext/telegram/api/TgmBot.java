@@ -2,7 +2,6 @@ package ashnext.telegram.api;
 
 import ashnext.telegram.api.response.*;
 import ashnext.telegram.api.types.BotCommand;
-import ashnext.telegram.api.types.InlineKeyboardButton;
 import ashnext.telegram.api.types.InlineKeyboardMarkup;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,20 +32,6 @@ public class TgmBot {
     private final String url;
 
     private final ObjectMapper mapper = new ObjectMapper();
-
-    public final static InlineKeyboardMarkup INLINE_KEYBOARD_MARKUP_POST_NORMAL = new InlineKeyboardMarkup(
-            new InlineKeyboardButton[][]{{
-                    new InlineKeyboardButton("\uD83D\uDCE5", "read-later", ""),
-                    new InlineKeyboardButton("\uD83D\uDDD1", "delete", "")
-            }}
-    );
-
-    public final static InlineKeyboardMarkup INLINE_KEYBOARD_MARKUP_POST_READ_LATER = new InlineKeyboardMarkup(
-            new InlineKeyboardButton[][]{{
-                    new InlineKeyboardButton("\uD83D\uDCE4", "remove-read-later", ""),
-                    new InlineKeyboardButton("\uD83D\uDDD1", "delete", "")
-            }}
-    );
 
     public TgmBot(String botToken, OkHttpClient okHttpClient) {
         client = okHttpClient;
