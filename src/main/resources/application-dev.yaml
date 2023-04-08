@@ -1,21 +1,9 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:55005/habrbot
-    username: postgres
-    password: root
-    driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: false
-    generate-ddl: true
-    hibernate:
-      ddl-auto: update
+
 bot:
   name: "HabrViewDevBot"
-  token: "1788564820:AAHL6oNp9916JJP-6nf9aCrNTyOL3hd9w8M"
   last-post-url: "https://habr.com/ru/post/566394/"
   scheduled:
     update: 1000

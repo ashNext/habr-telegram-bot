@@ -14,6 +14,7 @@ public class ReadLaterButton {
 
     private final Menu rlMenu = Menu.RL;
     private ActionReadLaterButton actionReadLaterButton;
+    @Builder.Default
     private String data = "";
 
     @Override

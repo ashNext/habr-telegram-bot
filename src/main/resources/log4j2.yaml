@@ -1,11 +1,12 @@
-Configutation:
+Configuration:
 
   Appenders:
     Console:
       name: CONSOLE
       target: SYSTEM_OUT
       PatternLayout:
-        Pattern: "%clr{%d{ISO8601}}{faint} %clr{%-5p} %clr{[%c{3}]}{cyan} [%t] %clr{:}{faint} %m%n%xwEx"
+        Pattern: "%highlight{[%-5level]} %d{DEFAULT}{GMT+3} %style{%c{5}}{blue} - %style{%msg%n}{white}"
+        disableAnsi: "false"
 
   Loggers:
     Root:
