@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -39,8 +38,8 @@ public class ParseHabrService {
             List<Post> postUrlsPage2 = parseAndGetPostsOnPage(SITE_URL + "/ru/all/page2/");
             if (!postUrlsPage2.isEmpty()) {
                 Collections.reverse(postUrlsPage2);
-                previousNewUrlsPosts.addAll(postUrlsPage2.stream().map(Post::getUrl).collect(Collectors.toList()));
-                previousNewUrlsPosts.addAll(currentPostList.stream().map(Post::getUrl).collect(Collectors.toList()));
+                previousNewUrlsPosts.addAll(postUrlsPage2.stream().map(Post::getUrl).toList());
+                previousNewUrlsPosts.addAll(currentPostList.stream().map(Post::getUrl).toList());
             } else {
                 return newPosts;
             }
@@ -48,11 +47,15 @@ public class ParseHabrService {
 
         for (Post currentPost : currentPostList) {
             if (!previousNewUrlsPosts.contains(currentPost.getUrl())) {
-                currentPost.getTags().forEach(tagService::addIfAbsent);
+                parseAndGetPost(currentPost.getUrl()).ifPresent(
+                        post -> {
+                            post.getTags().forEach(tagService::addIfAbsent);
 
-                newPosts.add(currentPost);
-                previousNewUrlsPosts.poll();
-                previousNewUrlsPosts.add(currentPost.getUrl());
+                            newPosts.add(post);
+                            previousNewUrlsPosts.poll();
+                            previousNewUrlsPosts.add(post.getUrl());
+                        }
+                );
             }
         }
 
@@ -66,10 +69,10 @@ public class ParseHabrService {
             try {
                 return Optional.of(HabrParser.parseNewPost(postHtml, postUrl));
             } catch (HabrParserException e) {
-                log.warn("Warning in parseAndGetPost: Failed to parse the post ({}): ", postUrl);
+                log.warn("Warning in parseAndGetPost: Failed to parse the post ({}): {}", postUrl, e.getMessage());
             }
         } catch (IOException ioException) {
-            log.warn(String.format("Error in parseAndGetPost when getting the document (%s): ", postUrl), ioException);
+            log.warn("Error in parseAndGetPost when getting the document ({}): {}", postUrl, ioException.getMessage(), ioException);
         }
 
         return Optional.empty();
@@ -82,10 +85,10 @@ public class ParseHabrService {
             try {
                 return HabrParser.parsePostsOnNewPage(html);
             } catch (HabrParserException e) {
-                log.warn("Warning in parseAndGetPostsOnPage: Failed to parse the site ({}): ", pageUrl);
+                log.warn("Warning in parseAndGetPostsOnPage: Failed to parse the site ({}): {}", pageUrl, e.getMessage());
             }
         } catch (IOException ioException) {
-            log.warn(String.format("Warning in parseAndGetUrlsOnPage when getting the document (%s): ", pageUrl),
+            log.warn("Warning in parseAndGetUrlsOnPage when getting the document ({}): {}", pageUrl, ioException.getMessage(),
                     ioException);
         }
 

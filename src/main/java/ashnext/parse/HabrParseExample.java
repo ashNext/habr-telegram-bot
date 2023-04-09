@@ -1,13 +1,9 @@
 package ashnext.parse;
 
-import ashnext.parse.model.CreatePageTph;
 import ashnext.parse.model.Post;
 import ashnext.parse.model.nodeTph.NodeElementTph;
 import ashnext.parse.model.nodeTph.NodeTextTph;
 import ashnext.parse.model.nodeTph.NodeTph;
-import ashnext.parse.util.DateTimeUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -18,8 +14,6 @@ import org.jsoup.select.Elements;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,7 +21,7 @@ public class HabrParseExample {
 
     private static final String SITE_URL = "https://habr.com";
     private static final int MAX_PAGES = 210;
-    private static final int MAX_POSTS = 2000;
+    private static final int MAX_POSTS = 20;
     private static final String URL_TELEGRAPH = "https://api.telegra.ph/createPage?access_token=b968da509bb76866c35425099bc0989a5ec3b32997d55286c657e6994bbb&title=Sample+Page&return_content=true&author_name=Anonymous&content=[%CONTENT%]";
     private static final String FAKE_POST_URL = "https://habr.com/ru/company/selectel/blog/555940/";
 
@@ -39,20 +33,37 @@ public class HabrParseExample {
         HabrParseExample parseHabr = new HabrParseExample();
         parseHabr.parsePageNew("/ru/all/");
 
+        StringBuilder hubsString = new StringBuilder();
         StringBuilder tagsString = new StringBuilder();
 
-        Set<String> set = new HashSet<>();
+        Set<String> setHubs = new HashSet<>();
+        Set<String> setTags = new HashSet<>();
 
-        parseHabr.getPosts().forEach(post -> set.addAll(post.getTags()));
+        parseHabr.getPosts().forEach(
+                post -> {
+                    setHubs.addAll(post.getHubs());
+                    try {
+                        setTags.addAll(parseHabr.parsePost(post.getUrl()).getTags());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
 
-        set.forEach(tag -> tagsString.append("('").append(tag).append("'), "));
+        setHubs.forEach(hub -> hubsString.append("('").append(hub).append("'), "));
+        setTags.forEach(hub -> tagsString.append("('").append(hub).append("'), "));
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\tags_file.txt", true));
-        writer.append(tagsString);
-        writer.close();
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\hubs_file.txt", true))) {
+            writer.append(hubsString);
+        }
+
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\tags_file.txt", true))) {
+            writer.append(tagsString);
+        }
 
         System.out.println("Posts: " + parseHabr.getPosts().size());
-        System.out.println("Tags: " + set.size());
+        System.out.println("Hubs: " + setHubs.size());
+        System.out.println("Tags: " + setTags.size());
 
 //        parseHabr.printPosts();
 //
@@ -90,6 +101,11 @@ public class HabrParseExample {
         }
     }
 
+    private Post parsePost(String url) throws IOException {
+        Document html = Jsoup.connect(url).get();
+        return HabrParser.parseNewPost(html, url);
+    }
+
     private void parsePage(String url) throws IOException {
         pageCounter++;
 
@@ -105,7 +121,7 @@ public class HabrParseExample {
 
         List<Element> contentItems = contentList.stream()
                 .filter(element -> element.attr("id").startsWith("post_"))
-                .collect(Collectors.toList());
+                .toList();
 
         for (Element contentItem : contentItems) {
             Elements postTitles = contentItem.getElementsByClass("post__title_link");
@@ -212,7 +228,7 @@ public class HabrParseExample {
 //                }
 //            }
 
-            posts.add(new Post(null, null, null, tags, null));
+            posts.add(new Post(null, null, null, null, tags, null));
             if (posts.size() >= MAX_POSTS) {
                 return;
             }

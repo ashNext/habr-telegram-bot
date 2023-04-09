@@ -27,6 +27,7 @@ public class NewsletterTask {
 
     @Scheduled(fixedDelayString = "${bot.scheduled.new-posts}")
     public void newsletter() {
+        log.info("[newsletter] check new posts");
         List<Post> postList = parseHabrService.getNewPosts();
         if (!postList.isEmpty()) {
             List<User> userList = userService.getAllWithTagsByActiveAndSub();

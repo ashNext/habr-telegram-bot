@@ -10,6 +10,7 @@ public class Post {
     String url;
     String header;
     Instant dateTime;
+    List<String> hubs;
     List<String> tags;
     String content;
 }

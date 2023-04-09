@@ -15,48 +15,36 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class HabrParser {
 
-    public static Post parseOldPost(Document postHtml, String postUrl) throws HabrParserException {
-        Element innerPostTitle = getElementByClass(postHtml, "post__title-text");
-        String title = getTextElement(innerPostTitle);
-
-        Elements postTags = postHtml.getElementsByClass("inline-list__item-link hub-link ");
-        List<String> tags = postTags.stream().map(Element::text).collect(Collectors.toList());
-
-        Element postTimeElement = getElementByClass(postHtml, "post__time");
-        Instant time = DateTimeUtils.parseDataTimePublished(getAttrElement(postTimeElement, "data-time_published"));
-
-        Element contentElement = postHtml.getElementById("post-content-body");
-        if (contentElement == null) {
-            throw new HabrParserException("No element 'post-content-body'");
-        }
-
-        return new Post(postUrl, title, time, tags, contentElement.html());
-    }
-
     public static Post parseNewPost(Document postHtml, String postUrl) {
         Element articleElement = getElementByClass(postHtml,
                 "tm-article-presenter__content tm-article-presenter__content_narrow");
 
         Element articleSnippetElement = getElementByClass(articleElement,
-                "tm-article-snippet tm-article-presenter__snippet");
+                "tm-article-snippet tm-article-presenter__snippet tm-article-snippet");
 
         //time
         Element datetimePublishedElement = getElementByClass(articleSnippetElement,
-                "tm-article-snippet__datetime-published");
+                "tm-article-datetime-published");
         Element timeElement = getElementByTag(datetimePublishedElement, "time");
         Instant time = DateTimeUtils.parseDataTimePublished(getAttrElement(timeElement, "datetime"));
 
         //title
-        Element titleElement = getElementByClass(articleSnippetElement,
-                "tm-article-snippet__title tm-article-snippet__title_h1");
+        Element titleElement = getElementByClass(articleSnippetElement, "tm-title tm-title_h1");
         Element spanElement = getElementByTag(titleElement, "span");
         String title = getTextElement(spanElement);
 
-        //tags
-        List<String> tags = articleSnippetElement.getElementsByClass("tm-article-snippet__hubs-item")
+        Element metaElement = getElementByClass(articleElement, "tm-article-presenter__meta");
+        //hubs
+        List<String> hubs = articleSnippetElement.getElementsByClass("tm-hubs-list__link")
                 .stream()
-                .map(element ->  getElementByTag(element, "span").text())
-                .collect(Collectors.toList());
+                .map(Element::text)
+                .toList();
+
+        //tags
+        List<String> tags = metaElement.getElementsByClass("tm-tags-list__link")
+                .stream()
+                .map(Element::text)
+                .toList();
 
         //body
         Element postContentBody = articleElement.getElementById("post-content-body");
@@ -64,36 +52,7 @@ public class HabrParser {
             throw new HabrParserException("No element 'post-content-body'");
         }
 
-        return new Post(postUrl, title, time, tags, postContentBody.html());
-    }
-
-    public static List<Post> parsePostsOnOldPage(Document html) {
-        Element postsListElement = getElementByClass(html, "posts_list");
-
-        Elements contentList = postsListElement
-                .getElementsByClass("content-list__item content-list__item_post shortcuts_item");
-
-        List<Element> contentItems = contentList.stream()
-                .filter(element -> element.attr("id").startsWith("post_")
-                        && !element.getElementsByClass("post__title_link").isEmpty())
-                .collect(Collectors.toList());
-
-        if (contentItems.isEmpty()) {
-            throw new HabrParserException("Element 'content-list__item...' is empty");
-        }
-
-        return contentItems.stream()
-                .map(contentItem -> {
-                    Element postTitleLinkElement = getElementByClass(contentItem, "post__title_link");
-                    String postUrl = getAttrElement(postTitleLinkElement, "href");
-                    String title = getTextElement(postTitleLinkElement);
-
-                    Element tagsContentElement = getElementByClass(contentItem, "post__hubs inline-list");
-                    Elements postTags = tagsContentElement.getElementsByClass("inline-list__item-link hub-link ");
-                    List<String> tags = postTags.stream().map(Element::text).collect(Collectors.toList());
-
-                    return new Post(postUrl, title, null, tags, null);
-                }).collect(Collectors.toList());
+        return new Post(postUrl, title, time, hubs, tags, postContentBody.html());
     }
 
     public static List<Post> parsePostsOnNewPage(Document html) {
@@ -112,26 +71,27 @@ public class HabrParser {
 
                     //title and url
                     Element titleAndLinkElement = getElementByClass(articleSnippetElement,
-                            "tm-article-snippet__title-link");
+                            "tm-title tm-title_h2");
                     // url
-                    String url = "https://habr.com" + getAttrElement(titleAndLinkElement, "href");
+                    Element urlElement = getElementByTag(titleAndLinkElement, "a");
+                    String url = "https://habr.com" + getAttrElement(urlElement, "href");
                     //title
                     Element titleElement = getElementByTag(titleAndLinkElement, "span");
                     String title = getTextElement(titleElement);
 
                     //time
                     Element datetimePublishedElement = getElementByClass(articleSnippetElement,
-                            "tm-article-snippet__datetime-published");
+                            "tm-article-datetime-published");
                     Element timeElement = getElementByTag(datetimePublishedElement, "time");
                     Instant time = DateTimeUtils.parseDataTimePublished(getAttrElement(timeElement, "datetime"));
 
-                    //tags
-                    List<String> tags = articleSnippetElement.getElementsByClass("tm-article-snippet__hubs-item")
+                    //hubs
+                    List<String> hubs = articleSnippetElement.getElementsByClass("tm-article-snippet__hubs-item")
                             .stream()
                             .map(element ->  getElementByTag(element, "span").text())
                             .collect(Collectors.toList());
 
-                    return new Post(url, title, time, tags, null);
+                    return new Post(url, title, time, hubs, null, null);
                 }).collect(Collectors.toList());
     }
 
