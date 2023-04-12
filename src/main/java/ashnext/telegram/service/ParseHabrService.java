@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,9 +21,6 @@ public class ParseHabrService {
     private static final String SITE_URL = "https://habr.com";
 
     private final TagService tagService;
-
-    @Value("${bot.last-post-url}")
-    private String lastPostUrl;
 
     private final Queue<String> previousNewUrlsPosts = new LinkedList<>();
 

@@ -11,13 +11,12 @@ public class BotPropertiesConfig {
 
     private String name = "";
     private String token;
-    private String lastPostUrl = "";
     private Scheduled scheduled;
 
     @Getter
     @Setter
     public static class Scheduled {
         private String update = "1000";
-        private String newPosts = "60000";
+        private String newPosts = "600000";
     }
 }

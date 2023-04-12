@@ -4,7 +4,6 @@ spring:
 
 bot:
   name: "HabrViewDevBot"
-  last-post-url: "https://habr.com/ru/post/566394/"
   scheduled:
     update: 1000
     new-posts: 300000
