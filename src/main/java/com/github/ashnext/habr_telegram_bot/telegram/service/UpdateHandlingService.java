@@ -1,0 +1,264 @@
+package com.github.ashnext.habr_telegram_bot.telegram.service;
+
+import com.github.ashnext.habr_telegram_bot.model.ReadLater;
+import com.github.ashnext.habr_telegram_bot.model.Tag;
+import com.github.ashnext.habr_telegram_bot.model.TagGroup;
+import com.github.ashnext.habr_telegram_bot.model.User;
+import com.github.ashnext.habr_telegram_bot.parse.model.Post;
+import com.github.ashnext.habr_telegram_bot.service.ReadLaterService;
+import com.github.ashnext.habr_telegram_bot.service.TagService;
+import com.github.ashnext.habr_telegram_bot.service.UserService;
+import com.github.ashnext.habr_telegram_bot.telegram.api.Command;
+import com.github.ashnext.habr_telegram_bot.telegram.api.types.*;
+import com.github.ashnext.habr_telegram_bot.telegram.control.read_later.ReadLaterButton;
+import com.github.ashnext.habr_telegram_bot.telegram.control.read_later.ReadLaterMenu;
+import com.github.ashnext.habr_telegram_bot.telegram.control.tag.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class UpdateHandlingService {
+
+    private final TgmBotService tgmBotService;
+
+    private final UserService userService;
+
+    private final ReadLaterService readLaterService;
+
+    private final ParseHabrService parseHabrService;
+
+    private final TagService tagService;
+
+    public void processMessage(Message message) {
+        final String firstName = message.getTgmUser().getFirstName();
+        final Long tgmUserId = message.getTgmUser().getId();
+
+        String msg;
+        InlineKeyboardMarkup buttons = new InlineKeyboardMarkup();
+
+        User user = userService.getByTelegramUserId(tgmUserId);
+
+        Command command = Command.valueOfCommand(message.getText());
+
+        if (command == Command.START) {
+            if (user != null) {
+                msg = String.format("Welcome back, %s!", firstName);
+                log.info("Registered user (tgmUserId={}) went to {}", tgmUserId, Command.START.getCommand());
+            } else {
+                userService.create(new User(tgmUserId, message.getChat().getId()));
+                msg = String.format("Hi, %s!", firstName);
+            }
+        } else if (user == null) {
+            msg = "You are not registered. Go to " + Command.START.getCommand();
+            log.warn("User with tgmUserId={} is not registered", tgmUserId);
+        } else {
+            switch (command) {
+                case SUB -> {
+                    userService.subscribe(user);
+                    msg = "You subscribed";
+                }
+                case UNSUB -> {
+                    userService.unsubscribe(user);
+                    msg = "You unsubscribed";
+                }
+                case READ_LATER -> {
+                    tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
+                    buttons = ReadLaterMenu.getReadLaterButtons(readLaterService.getAllByUser(user));
+
+                    msg = "List Read later:";
+                    if (buttons.getInlineKeyboard().length == 0) {
+                        msg = msg + " empty";
+                    }
+                }
+                case TAGS -> {
+                    tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
+                    buttons = TagMenu.getTagManagementButtons();
+
+                    msg = "Tag management:";
+                    if (buttons.getInlineKeyboard().length == 0) {
+                        msg = msg + " empty";
+                    }
+                }
+                default -> {
+                    msg = "I don't understand yet ((";
+                    log.warn("Unprocessed user (tgmUserId={}) message '{}'", tgmUserId, message.getText());
+                }
+            }
+        }
+
+        if (buttons.getInlineKeyboard() != null) {
+            tgmBotService.getTgmBot().sendMessage(message.getChat().getId(), msg, buttons);
+        } else {
+            tgmBotService.getTgmBot().sendMessage(message.getChat().getId(), msg);
+        }
+    }
+
+    public void changeUserStatus(ChatMemberUpdated chatMemberUpdated) {
+        final Long tgmUserId = chatMemberUpdated.getUser().getId();
+        final User user = userService.getByTelegramUserId(tgmUserId);
+
+        if (user == null) {
+            log.warn("Changing the user's status is not possible because user with id={} is not registered", tgmUserId);
+        } else {
+            ChatMember oldChatMember = chatMemberUpdated.getOldChatMember();
+            ChatMember newChatMember = chatMemberUpdated.getNewChatMember();
+
+            if (oldChatMember.getStatus().equalsIgnoreCase("member")
+                    && newChatMember.getStatus().equalsIgnoreCase("kicked")
+                    && user.isActive()) {
+                userService.setActive(user, false);
+            } else if (oldChatMember.getStatus().equalsIgnoreCase("kicked")
+                    && newChatMember.getStatus().equalsIgnoreCase("member")
+                    && !user.isActive()) {
+                userService.setActive(user, true);
+            }
+        }
+    }
+
+    public void handlingCallBackQuery(CallbackQuery callbackQuery) {
+        final User user = userService.getByTelegramUserId(callbackQuery.getUser().getId());
+        final String cbqData = callbackQuery.getData();
+        final Message cbqMessage = callbackQuery.getMessage();
+        final int chatId = cbqMessage.getChat().getId();
+        final int messageId = cbqMessage.getMessageId();
+
+        if (cbqData.equalsIgnoreCase("delete") || cbqData.equalsIgnoreCase("close")) {
+            tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
+            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(),
+                    cbqData.equalsIgnoreCase("delete") ? "Deleted" : "");
+        } else if (cbqData.startsWith("rl:")) {
+            ReadLaterButton readLaterButton = ReadLaterMenu.getButton(cbqData);
+
+            switch (readLaterButton.getActionReadLaterButton()) {
+                case GET -> {
+                    Optional<ReadLater> optReadLater =
+                            readLaterService.getByUUID(UUID.fromString(readLaterButton.getData()));
+                    if (optReadLater.isPresent()) {
+                        tgmBotService.getTgmBot().sendMessage(
+                                chatId,
+                                optReadLater.get().getPostUrl(),
+                                ReadLaterMenu.getButtonsWithRemove());
+                        tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
+                        tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
+                    } else {
+                        tgmBotService.getTgmBot().answerCallbackQuery(
+                                callbackQuery.getId(),
+                                "Post would be removed from the list Read later");
+                    }
+                }
+                case PUT -> {
+                    final String postUrl = cbqMessage.getText();
+                    if (!readLaterService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
+                        tgmBotService.getTgmBot().answerCallbackQuery(
+                                callbackQuery.getId(),
+                                "The post has already been added earlier");
+                        return;
+                    }
+
+                    final Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
+                    if (optPost.isPresent()) {
+                        if (readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader())) != null) {
+                            tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
+                            tgmBotService.getTgmBot().answerCallbackQuery(
+                                    callbackQuery.getId(),
+                                    "Post has been moved to the list Read Later");
+                        } else {
+                            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Something went wrong");
+                        }
+                    } else {
+                        tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Error parsing post header ((");
+                    }
+                }
+                case PULL -> {
+                    readLaterService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
+                            readLater -> readLaterService.delete(readLater.getId())
+                    );
+                    tgmBotService.getTgmBot().editMessageText(chatId, messageId, cbqMessage.getText(), ReadLaterMenu.getButtonsWithAdd());
+                    tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Remove from the list Read later");
+                }
+            }
+        } else if (cbqData.startsWith("tg:")) {
+            String answerCallbackQueryText = "";
+            String captionMenu;
+            InlineKeyboardMarkup keyboard;
+
+            TagButton pressedButton = TagMenu.getButton(cbqData);
+
+            if (pressedButton.getActionTagButton() == ActionTagButton.MANAGEMENT) {
+                captionMenu = "Tag management";
+                keyboard = TagMenu.getTagManagementButtons();
+            } else {
+                Page<Tag> pageTags = null;
+                int page = pressedButton.getPage();
+
+                switch (pressedButton.getActionTagButton()) {
+                    case ADD -> {
+                        Optional<Tag> addedTag = userService
+                                .addTagByUserIdAndTagId(user.getId(), UUID.fromString(pressedButton.getData()));
+
+                        answerCallbackQueryText = addedTag
+                                .map(tag -> "Tag " + tag.getName() + " added")
+                                .orElse("The tag has already been added");
+                        if (pressedButton.getGroupTag() == GroupTag.ALL_TAGS) {
+                            tgmBotService.getTgmBot().
+                                    answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
+                            return;
+                        }
+                    }
+                    case REMOVE -> {
+                        Optional<Tag> removedTag = userService
+                                .removeTagByUserIdAndTagId(user.getId(), UUID.fromString(pressedButton.getData()));
+
+                        answerCallbackQueryText = removedTag
+                                .map(tag -> "Tag " + tag.getName() + " removed")
+                                .orElse("The tag has already been removed");
+                    }
+                }
+
+                TagGroup tagGroup;
+                if (pressedButton.getTypeTag() == TypeTag.BLOG) {
+                    captionMenu = "company blogs";
+                    tagGroup = TagGroup.BLOG;
+                } else {
+                    captionMenu = "common";
+                    tagGroup = TagGroup.COMMON;
+                }
+
+                switch (pressedButton.getGroupTag()) {
+                    case ALL_TAGS -> {
+                        captionMenu = "All " + captionMenu + "\n(click to add)";
+                        pageTags = tagService.getAllByTagGroup(tagGroup, page, 20);
+                    }
+                    case WITHOUT_MY_TAGS -> {
+                        captionMenu = "Without my " + captionMenu + "\n(click to add)";
+                        pageTags = tagService.getWithoutUserTags(user.getId(), tagGroup, page, 20);
+                    }
+                    case MY_TAGS -> {
+                        captionMenu = "My " + captionMenu + "\n(click to remove)";
+                        pageTags = userService.getByIdAndTagGroup(user.getId(), tagGroup, page, 20);
+                    }
+                }
+
+                if (pageTags != null && pageTags.hasContent()) {
+                    page = pageTags.getNumber();
+                    captionMenu = captionMenu + " [page " + (page + 1) + " of " + pageTags.getTotalPages() + "]";
+                } else {
+                    captionMenu = captionMenu + " [empty]";
+                }
+
+                keyboard = TagMenu.getTagsPageableButtons(pageTags, pressedButton);
+            }
+
+            tgmBotService.getTgmBot().editMessageText(chatId, messageId, captionMenu, keyboard);
+            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
+        }
+
+    }
+}
