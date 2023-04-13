@@ -1,27 +1,31 @@
 package com.github.ashnext.habr_telegram_bot.telegram.service;
 
 import com.github.ashnext.habr_telegram_bot.bookmark.Bookmark;
+import com.github.ashnext.habr_telegram_bot.bookmark.service.BookmarkService;
+import com.github.ashnext.habr_telegram_bot.parse.model.Post;
 import com.github.ashnext.habr_telegram_bot.parse.service.ParseHabrService;
 import com.github.ashnext.habr_telegram_bot.tag.Tag;
 import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
-import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
-import com.github.ashnext.habr_telegram_bot.user.User;
-import com.github.ashnext.habr_telegram_bot.parse.model.Post;
-import com.github.ashnext.habr_telegram_bot.bookmark.service.BookmarkService;
 import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
-import com.github.ashnext.habr_telegram_bot.user.service.UserService;
 import com.github.ashnext.habr_telegram_bot.telegram.api.Command;
+import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.*;
 import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkButton;
 import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkMenu;
 import com.github.ashnext.habr_telegram_bot.telegram.control.tag.*;
+import com.github.ashnext.habr_telegram_bot.user.User;
+import com.github.ashnext.habr_telegram_bot.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot.TG_INSTANT_VIEW_TEMPLATE;
 
 @Service
 @Slf4j
@@ -135,7 +139,7 @@ public class UpdateHandlingService {
             tgmBot.deleteMessage(chatId, messageId);
             tgmBot.answerCallbackQuery(callbackQuery.getId(),
                     cbqData.equalsIgnoreCase("delete") ? "Deleted" : "");
-        } else if (cbqData.startsWith("rl:")) {
+        } else if (cbqData.startsWith("bm:")) {
             BookmarkButton bookmarkButton = BookmarkMenu.getButton(cbqData);
 
             switch (bookmarkButton.getActionBookmarkButton()) {
@@ -145,7 +149,7 @@ public class UpdateHandlingService {
                     if (optBookmark.isPresent()) {
                         tgmBot.sendMessage(
                                 chatId,
-                                optBookmark.get().getPostUrl(),
+                                String.format(TG_INSTANT_VIEW_TEMPLATE, optBookmark.get().getPostUrl()),
                                 BookmarkMenu.getButtonsWithRemove());
                         tgmBot.answerCallbackQuery(callbackQuery.getId(), "");
                         tgmBot.deleteMessage(chatId, messageId);
@@ -156,7 +160,8 @@ public class UpdateHandlingService {
                     }
                 }
                 case PUT -> {
-                    final String postUrl = cbqMessage.getText();
+                    final String postUrl = getUrlFromTgUrl(cbqMessage.getText(), callbackQuery.getId());
+
                     if (!bookmarkService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
                         tgmBot.answerCallbackQuery(
                                 callbackQuery.getId(),
@@ -172,18 +177,20 @@ public class UpdateHandlingService {
                                     callbackQuery.getId(),
                                     "Post has been moved to Bookmarks");
                         } else {
-                            tgmBot.answerCallbackQuery(callbackQuery.getId(), "Something went wrong");
+                            tgmBot.answerCallbackQuery(callbackQuery.getId(), "Something went wrong 😢");
                         }
                     } else {
-                        tgmBot.answerCallbackQuery(callbackQuery.getId(), "Error parsing post header ((");
+                        tgmBot.answerCallbackQuery(callbackQuery.getId(), "Error parsing post header 😢");
                     }
                 }
                 case PULL -> {
-                    bookmarkService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
+                    final String postUrl = getUrlFromTgUrl(cbqMessage.getText(), callbackQuery.getId());
+
+                    tgmBot.editMessageText(chatId, messageId, cbqMessage.getText(), BookmarkMenu.getButtonsWithAdd());
+                    tgmBot.answerCallbackQuery(callbackQuery.getId(), "Remove from the Bookmarks");
+                    bookmarkService.getAllByUserAndPostUrl(user, postUrl).forEach(
                             bookmark -> bookmarkService.delete(bookmark.getId())
                     );
-                    tgmBot.editMessageText(chatId, messageId, cbqMessage.getText(), BookmarkMenu.getButtonsWithAdd());
-                    tgmBot.answerCallbackQuery(callbackQuery.getId(), "Remove from the list Bookmarks");
                 }
             }
         } else if (cbqData.startsWith("tg:")) {
@@ -260,6 +267,23 @@ public class UpdateHandlingService {
             tgmBot.editMessageText(chatId, messageId, captionMenu, keyboard);
             tgmBot.answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
         }
-
     }
+
+    private String getUrlFromTgUrl(String tgUrl, String callbackQueryId) {
+        URI uri = URI.create(tgUrl);
+        return Arrays.stream(uri.getQuery().split("&"))
+                .filter(f -> f.startsWith("url="))
+                .findFirst()
+                .orElseThrow(
+                        () -> {
+                            tgmBot.answerCallbackQuery(
+                                    callbackQueryId,
+                                    "Something went wrong 😢");
+
+                            return new IllegalArgumentException("Failed to parse url=" + uri);
+                        }
+                )
+                .replaceFirst("url=", "");
+    }
+
 }

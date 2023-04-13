@@ -19,6 +19,7 @@ import java.util.Optional;
 public class TgmBot {
 
     private final static String TGM_URL_API = "https://api.telegram.org";
+    public static final String TG_INSTANT_VIEW_TEMPLATE = "https://t.me/iv?url=%s&rhash=6d1a1b3a0654c5";
 
     private final static List<BotCommand> COMMANDS_LIST = List.of(
             new BotCommand(Command.SUB.getCommand(), "Subscribe to articles"),

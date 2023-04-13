@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.github.ashnext.habr_telegram_bot.parse.HabrParser.SITE_URL;
+import static com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot.TG_INSTANT_VIEW_TEMPLATE;
 
 @Service
 @Slf4j
@@ -28,7 +29,6 @@ public class ParseHabrService {
 
     private static final String FIRST_PAGE_URL = SITE_URL + "/ru/all/";
     private static final String SECOND_PAGE_URL = SITE_URL + "/ru/all/page2/";
-    private static final String TG_INSTANT_VIEW_TEMPLATE = "https://t.me/iv?url=%s&rhash=6d1a1b3a0654c5";
 
     private final TagService tagService;
     private final UserService userService;

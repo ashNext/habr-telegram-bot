@@ -12,14 +12,14 @@ import lombok.NoArgsConstructor;
 @Builder
 public class BookmarkButton {
 
-    private final Menu rlMenu = Menu.RL;
+    private final Menu bmMenu = Menu.BM;
     private ActionBookmarkButton actionBookmarkButton;
     @Builder.Default
     private String data = "";
 
     @Override
     public String toString() {
-        return rlMenu.getText()
+        return bmMenu.getText()
                 + ":" + actionBookmarkButton.getText()
                 + ":" + data;
     }
