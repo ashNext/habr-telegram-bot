@@ -15,7 +15,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ReadLater extends BaseEntity {
+public class Bookmark extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -29,7 +29,7 @@ public class ReadLater extends BaseEntity {
 
     @Override
     public String toString() {
-        return "ReadLater{" +
+        return "Bookmark{" +
                 "id=" + id +
                 ", postUrl=" + postUrl +
                 ", postTitle=" + postTitle +

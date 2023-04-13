@@ -1,7 +1,7 @@
 package com.github.ashnext.habr_telegram_bot.telegram.api;
 
 public enum Command {
-    START, SUB, UNSUB, READ_LATER, TAGS;
+    START, SUB, UNSUB, BOOKMARKS, TAGS;
 
     public String getCommand() {
         return "/" + this.name().toLowerCase();

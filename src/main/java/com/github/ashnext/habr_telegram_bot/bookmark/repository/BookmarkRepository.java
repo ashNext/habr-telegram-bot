@@ -1,6 +1,6 @@
 package com.github.ashnext.habr_telegram_bot.bookmark.repository;
 
-import com.github.ashnext.habr_telegram_bot.bookmark.ReadLater;
+import com.github.ashnext.habr_telegram_bot.bookmark.Bookmark;
 import com.github.ashnext.habr_telegram_bot.user.User;
 import java.util.List;
 import java.util.UUID;
@@ -9,9 +9,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ReadLaterRepository extends JpaRepository<ReadLater, UUID> {
+public interface BookmarkRepository extends JpaRepository<Bookmark, UUID> {
 
-    List<ReadLater> findAllByUser(User user);
+    List<Bookmark> findAllByUser(User user);
 
-    List<ReadLater> findAllByUserAndPostUrl(User user, String postUrl);
+    List<Bookmark> findAllByUserAndPostUrl(User user, String postUrl);
 }

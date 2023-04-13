@@ -23,7 +23,7 @@ public class TgmBot {
     private final static List<BotCommand> COMMANDS_LIST = List.of(
             new BotCommand(Command.SUB.getCommand(), "Subscribe to articles"),
             new BotCommand(Command.UNSUB.getCommand(), "Cancel subscription"),
-            new BotCommand(Command.READ_LATER.getCommand(), "Read later list"),
+            new BotCommand(Command.BOOKMARKS.getCommand(), "Bookmarks"),
             new BotCommand(Command.TAGS.getCommand(), "Tag management")
     );
 

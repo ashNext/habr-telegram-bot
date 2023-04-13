@@ -1,19 +1,19 @@
 package com.github.ashnext.habr_telegram_bot.telegram.service;
 
-import com.github.ashnext.habr_telegram_bot.bookmark.ReadLater;
+import com.github.ashnext.habr_telegram_bot.bookmark.Bookmark;
 import com.github.ashnext.habr_telegram_bot.parse.service.ParseHabrService;
 import com.github.ashnext.habr_telegram_bot.tag.Tag;
 import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
 import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
 import com.github.ashnext.habr_telegram_bot.user.User;
 import com.github.ashnext.habr_telegram_bot.parse.model.Post;
-import com.github.ashnext.habr_telegram_bot.bookmark.service.ReadLaterService;
+import com.github.ashnext.habr_telegram_bot.bookmark.service.BookmarkService;
 import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
 import com.github.ashnext.habr_telegram_bot.user.service.UserService;
 import com.github.ashnext.habr_telegram_bot.telegram.api.Command;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.*;
-import com.github.ashnext.habr_telegram_bot.telegram.control.read_later.ReadLaterButton;
-import com.github.ashnext.habr_telegram_bot.telegram.control.read_later.ReadLaterMenu;
+import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkButton;
+import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkMenu;
 import com.github.ashnext.habr_telegram_bot.telegram.control.tag.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class UpdateHandlingService {
 
     private final UserService userService;
 
-    private final ReadLaterService readLaterService;
+    private final BookmarkService bookmarkService;
 
     private final ParseHabrService parseHabrService;
 
@@ -70,11 +70,11 @@ public class UpdateHandlingService {
                     userService.unsubscribe(user);
                     msg = "You unsubscribed";
                 }
-                case READ_LATER -> {
+                case BOOKMARKS -> {
                     tgmBot.deleteMessage(message.getChat().getId(), message.getMessageId());
-                    buttons = ReadLaterMenu.getReadLaterButtons(readLaterService.getAllByUser(user));
+                    buttons = BookmarkMenu.getBookmarkButtons(bookmarkService.getAllByUser(user));
 
-                    msg = "List Read later:";
+                    msg = "Bookmarks:";
                     if (buttons.getInlineKeyboard().length == 0) {
                         msg = msg + " empty";
                     }
@@ -136,28 +136,28 @@ public class UpdateHandlingService {
             tgmBot.answerCallbackQuery(callbackQuery.getId(),
                     cbqData.equalsIgnoreCase("delete") ? "Deleted" : "");
         } else if (cbqData.startsWith("rl:")) {
-            ReadLaterButton readLaterButton = ReadLaterMenu.getButton(cbqData);
+            BookmarkButton bookmarkButton = BookmarkMenu.getButton(cbqData);
 
-            switch (readLaterButton.getActionReadLaterButton()) {
+            switch (bookmarkButton.getActionBookmarkButton()) {
                 case GET -> {
-                    Optional<ReadLater> optReadLater =
-                            readLaterService.getByUUID(UUID.fromString(readLaterButton.getData()));
-                    if (optReadLater.isPresent()) {
+                    Optional<Bookmark> optBookmark =
+                            bookmarkService.getByUUID(UUID.fromString(bookmarkButton.getData()));
+                    if (optBookmark.isPresent()) {
                         tgmBot.sendMessage(
                                 chatId,
-                                optReadLater.get().getPostUrl(),
-                                ReadLaterMenu.getButtonsWithRemove());
+                                optBookmark.get().getPostUrl(),
+                                BookmarkMenu.getButtonsWithRemove());
                         tgmBot.answerCallbackQuery(callbackQuery.getId(), "");
                         tgmBot.deleteMessage(chatId, messageId);
                     } else {
                         tgmBot.answerCallbackQuery(
                                 callbackQuery.getId(),
-                                "Post would be removed from the list Read later");
+                                "Post would be removed from Bookmarks");
                     }
                 }
                 case PUT -> {
                     final String postUrl = cbqMessage.getText();
-                    if (!readLaterService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
+                    if (!bookmarkService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
                         tgmBot.answerCallbackQuery(
                                 callbackQuery.getId(),
                                 "The post has already been added earlier");
@@ -166,11 +166,11 @@ public class UpdateHandlingService {
 
                     final Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
                     if (optPost.isPresent()) {
-                        if (readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader())) != null) {
+                        if (bookmarkService.create(new Bookmark(user, postUrl, optPost.get().getHeader())) != null) {
                             tgmBot.deleteMessage(chatId, messageId);
                             tgmBot.answerCallbackQuery(
                                     callbackQuery.getId(),
-                                    "Post has been moved to the list Read Later");
+                                    "Post has been moved to Bookmarks");
                         } else {
                             tgmBot.answerCallbackQuery(callbackQuery.getId(), "Something went wrong");
                         }
@@ -179,11 +179,11 @@ public class UpdateHandlingService {
                     }
                 }
                 case PULL -> {
-                    readLaterService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
-                            readLater -> readLaterService.delete(readLater.getId())
+                    bookmarkService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
+                            bookmark -> bookmarkService.delete(bookmark.getId())
                     );
-                    tgmBot.editMessageText(chatId, messageId, cbqMessage.getText(), ReadLaterMenu.getButtonsWithAdd());
-                    tgmBot.answerCallbackQuery(callbackQuery.getId(), "Remove from the list Read later");
+                    tgmBot.editMessageText(chatId, messageId, cbqMessage.getText(), BookmarkMenu.getButtonsWithAdd());
+                    tgmBot.answerCallbackQuery(callbackQuery.getId(), "Remove from the list Bookmarks");
                 }
             }
         } else if (cbqData.startsWith("tg:")) {

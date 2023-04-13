@@ -6,7 +6,7 @@ import com.github.ashnext.habr_telegram_bot.parse.model.Post;
 import com.github.ashnext.habr_telegram_bot.tag.Tag;
 import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
 import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
-import com.github.ashnext.habr_telegram_bot.telegram.control.read_later.ReadLaterMenu;
+import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkMenu;
 import com.github.ashnext.habr_telegram_bot.user.User;
 import com.github.ashnext.habr_telegram_bot.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +63,7 @@ public class ParseHabrService {
                                     tgmBot.sendMessage(
                                             user.getTelegramChatId(),
                                             String.format(TG_INSTANT_VIEW_TEMPLATE, post.getUrl()),
-                                            ReadLaterMenu.getButtonsWithAdd());
+                                            BookmarkMenu.getButtonsWithAdd());
                                 }
                             }
                     )

@@ -1,4 +1,4 @@
-package com.github.ashnext.habr_telegram_bot.telegram.control.read_later;
+package com.github.ashnext.habr_telegram_bot.telegram.control.bookmark;
 
 import com.github.ashnext.habr_telegram_bot.telegram.control.Menu;
 import lombok.AllArgsConstructor;
@@ -10,17 +10,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ReadLaterButton {
+public class BookmarkButton {
 
     private final Menu rlMenu = Menu.RL;
-    private ActionReadLaterButton actionReadLaterButton;
+    private ActionBookmarkButton actionBookmarkButton;
     @Builder.Default
     private String data = "";
 
     @Override
     public String toString() {
         return rlMenu.getText()
-                + ":" + actionReadLaterButton.getText()
+                + ":" + actionBookmarkButton.getText()
                 + ":" + data;
     }
 }
