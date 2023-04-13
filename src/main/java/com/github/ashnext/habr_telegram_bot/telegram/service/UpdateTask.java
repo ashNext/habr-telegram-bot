@@ -3,7 +3,6 @@ package com.github.ashnext.habr_telegram_bot.telegram.service;
 import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
 import com.github.ashnext.habr_telegram_bot.telegram.api.response.ResponseUpdates;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.Update;
-import com.github.ashnext.habr_telegram_bot.telegram.service.UpdateHandlingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
