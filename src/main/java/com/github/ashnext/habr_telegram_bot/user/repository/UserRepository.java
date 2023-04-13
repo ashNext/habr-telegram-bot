@@ -1,7 +1,7 @@
-package com.github.ashnext.habr_telegram_bot.repository;
+package com.github.ashnext.habr_telegram_bot.user.repository;
 
-import com.github.ashnext.habr_telegram_bot.model.TagGroup;
-import com.github.ashnext.habr_telegram_bot.model.User;
+import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
+import com.github.ashnext.habr_telegram_bot.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

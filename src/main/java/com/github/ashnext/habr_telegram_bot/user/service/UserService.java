@@ -1,9 +1,10 @@
-package com.github.ashnext.habr_telegram_bot.service;
+package com.github.ashnext.habr_telegram_bot.user.service;
 
-import com.github.ashnext.habr_telegram_bot.model.Tag;
-import com.github.ashnext.habr_telegram_bot.model.TagGroup;
-import com.github.ashnext.habr_telegram_bot.model.User;
-import com.github.ashnext.habr_telegram_bot.repository.UserRepository;
+import com.github.ashnext.habr_telegram_bot.tag.Tag;
+import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
+import com.github.ashnext.habr_telegram_bot.user.User;
+import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
+import com.github.ashnext.habr_telegram_bot.user.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;

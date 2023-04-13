@@ -1,13 +1,15 @@
 package com.github.ashnext.habr_telegram_bot.telegram.service;
 
-import com.github.ashnext.habr_telegram_bot.model.ReadLater;
-import com.github.ashnext.habr_telegram_bot.model.Tag;
-import com.github.ashnext.habr_telegram_bot.model.TagGroup;
-import com.github.ashnext.habr_telegram_bot.model.User;
+import com.github.ashnext.habr_telegram_bot.bookmark.ReadLater;
+import com.github.ashnext.habr_telegram_bot.parse.service.ParseHabrService;
+import com.github.ashnext.habr_telegram_bot.tag.Tag;
+import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
+import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
+import com.github.ashnext.habr_telegram_bot.user.User;
 import com.github.ashnext.habr_telegram_bot.parse.model.Post;
-import com.github.ashnext.habr_telegram_bot.service.ReadLaterService;
-import com.github.ashnext.habr_telegram_bot.service.TagService;
-import com.github.ashnext.habr_telegram_bot.service.UserService;
+import com.github.ashnext.habr_telegram_bot.bookmark.service.ReadLaterService;
+import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
+import com.github.ashnext.habr_telegram_bot.user.service.UserService;
 import com.github.ashnext.habr_telegram_bot.telegram.api.Command;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.*;
 import com.github.ashnext.habr_telegram_bot.telegram.control.read_later.ReadLaterButton;
@@ -26,7 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UpdateHandlingService {
 
-    private final TgmBotService tgmBotService;
+    private final TgmBot tgmBot;
 
     private final UserService userService;
 
@@ -69,7 +71,7 @@ public class UpdateHandlingService {
                     msg = "You unsubscribed";
                 }
                 case READ_LATER -> {
-                    tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
+                    tgmBot.deleteMessage(message.getChat().getId(), message.getMessageId());
                     buttons = ReadLaterMenu.getReadLaterButtons(readLaterService.getAllByUser(user));
 
                     msg = "List Read later:";
@@ -78,7 +80,7 @@ public class UpdateHandlingService {
                     }
                 }
                 case TAGS -> {
-                    tgmBotService.getTgmBot().deleteMessage(message.getChat().getId(), message.getMessageId());
+                    tgmBot.deleteMessage(message.getChat().getId(), message.getMessageId());
                     buttons = TagMenu.getTagManagementButtons();
 
                     msg = "Tag management:";
@@ -94,9 +96,9 @@ public class UpdateHandlingService {
         }
 
         if (buttons.getInlineKeyboard() != null) {
-            tgmBotService.getTgmBot().sendMessage(message.getChat().getId(), msg, buttons);
+            tgmBot.sendMessage(message.getChat().getId(), msg, buttons);
         } else {
-            tgmBotService.getTgmBot().sendMessage(message.getChat().getId(), msg);
+            tgmBot.sendMessage(message.getChat().getId(), msg);
         }
     }
 
@@ -130,8 +132,8 @@ public class UpdateHandlingService {
         final int messageId = cbqMessage.getMessageId();
 
         if (cbqData.equalsIgnoreCase("delete") || cbqData.equalsIgnoreCase("close")) {
-            tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
-            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(),
+            tgmBot.deleteMessage(chatId, messageId);
+            tgmBot.answerCallbackQuery(callbackQuery.getId(),
                     cbqData.equalsIgnoreCase("delete") ? "Deleted" : "");
         } else if (cbqData.startsWith("rl:")) {
             ReadLaterButton readLaterButton = ReadLaterMenu.getButton(cbqData);
@@ -141,14 +143,14 @@ public class UpdateHandlingService {
                     Optional<ReadLater> optReadLater =
                             readLaterService.getByUUID(UUID.fromString(readLaterButton.getData()));
                     if (optReadLater.isPresent()) {
-                        tgmBotService.getTgmBot().sendMessage(
+                        tgmBot.sendMessage(
                                 chatId,
                                 optReadLater.get().getPostUrl(),
                                 ReadLaterMenu.getButtonsWithRemove());
-                        tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "");
-                        tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
+                        tgmBot.answerCallbackQuery(callbackQuery.getId(), "");
+                        tgmBot.deleteMessage(chatId, messageId);
                     } else {
-                        tgmBotService.getTgmBot().answerCallbackQuery(
+                        tgmBot.answerCallbackQuery(
                                 callbackQuery.getId(),
                                 "Post would be removed from the list Read later");
                     }
@@ -156,7 +158,7 @@ public class UpdateHandlingService {
                 case PUT -> {
                     final String postUrl = cbqMessage.getText();
                     if (!readLaterService.getAllByUserAndPostUrl(user, postUrl).isEmpty()) {
-                        tgmBotService.getTgmBot().answerCallbackQuery(
+                        tgmBot.answerCallbackQuery(
                                 callbackQuery.getId(),
                                 "The post has already been added earlier");
                         return;
@@ -165,23 +167,23 @@ public class UpdateHandlingService {
                     final Optional<Post> optPost = parseHabrService.parseAndGetPost(postUrl);
                     if (optPost.isPresent()) {
                         if (readLaterService.create(new ReadLater(user, postUrl, optPost.get().getHeader())) != null) {
-                            tgmBotService.getTgmBot().deleteMessage(chatId, messageId);
-                            tgmBotService.getTgmBot().answerCallbackQuery(
+                            tgmBot.deleteMessage(chatId, messageId);
+                            tgmBot.answerCallbackQuery(
                                     callbackQuery.getId(),
                                     "Post has been moved to the list Read Later");
                         } else {
-                            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Something went wrong");
+                            tgmBot.answerCallbackQuery(callbackQuery.getId(), "Something went wrong");
                         }
                     } else {
-                        tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Error parsing post header ((");
+                        tgmBot.answerCallbackQuery(callbackQuery.getId(), "Error parsing post header ((");
                     }
                 }
                 case PULL -> {
                     readLaterService.getAllByUserAndPostUrl(user, cbqMessage.getText()).forEach(
                             readLater -> readLaterService.delete(readLater.getId())
                     );
-                    tgmBotService.getTgmBot().editMessageText(chatId, messageId, cbqMessage.getText(), ReadLaterMenu.getButtonsWithAdd());
-                    tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), "Remove from the list Read later");
+                    tgmBot.editMessageText(chatId, messageId, cbqMessage.getText(), ReadLaterMenu.getButtonsWithAdd());
+                    tgmBot.answerCallbackQuery(callbackQuery.getId(), "Remove from the list Read later");
                 }
             }
         } else if (cbqData.startsWith("tg:")) {
@@ -207,8 +209,7 @@ public class UpdateHandlingService {
                                 .map(tag -> "Tag " + tag.getName() + " added")
                                 .orElse("The tag has already been added");
                         if (pressedButton.getGroupTag() == GroupTag.ALL_TAGS) {
-                            tgmBotService.getTgmBot().
-                                    answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
+                            tgmBot.answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
                             return;
                         }
                     }
@@ -256,8 +257,8 @@ public class UpdateHandlingService {
                 keyboard = TagMenu.getTagsPageableButtons(pageTags, pressedButton);
             }
 
-            tgmBotService.getTgmBot().editMessageText(chatId, messageId, captionMenu, keyboard);
-            tgmBotService.getTgmBot().answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
+            tgmBot.editMessageText(chatId, messageId, captionMenu, keyboard);
+            tgmBot.answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
         }
 
     }

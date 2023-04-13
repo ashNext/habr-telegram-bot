@@ -1,13 +1,19 @@
-package com.github.ashnext.habr_telegram_bot.telegram.service;
+package com.github.ashnext.habr_telegram_bot.parse.service;
 
 import com.github.ashnext.habr_telegram_bot.parse.HabrParser;
 import com.github.ashnext.habr_telegram_bot.parse.HabrParserException;
 import com.github.ashnext.habr_telegram_bot.parse.model.Post;
-import com.github.ashnext.habr_telegram_bot.service.TagService;
+import com.github.ashnext.habr_telegram_bot.tag.Tag;
+import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
+import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
+import com.github.ashnext.habr_telegram_bot.telegram.control.read_later.ReadLaterMenu;
+import com.github.ashnext.habr_telegram_bot.user.User;
+import com.github.ashnext.habr_telegram_bot.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,9 +28,48 @@ public class ParseHabrService {
 
     private final TagService tagService;
 
+    private final UserService userService;
+
+    private final TgmBot tgmBot;
+
     private final Queue<String> previousNewUrlsPosts = new LinkedList<>();
 
-    public List<Post> getNewPosts() {
+    @Scheduled(fixedDelayString = "${bot.scheduled.new-posts}")
+    public void updateUserFeed() {
+        log.info("[updateUserFeed] check new posts");
+        List<Post> postList = getNewPosts();
+        if (!postList.isEmpty()) {
+            List<User> userList = userService.getAllWithTagsByActiveAndSub();
+
+            postList.forEach(post ->
+                    userList.forEach(
+                            user -> {
+                                boolean send = false;
+
+                                if (user.getTags().isEmpty() || post.getTags().isEmpty()) {
+                                    send = true;
+                                } else {
+                                    for (Tag userTag : user.getTags()) {
+                                        if (post.getTags().contains(userTag.getName())) {
+                                            send = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (send) {
+                                    tgmBot.sendMessage(
+                                            user.getTelegramChatId(),
+                                            post.getUrl(),
+                                            ReadLaterMenu.getButtonsWithAdd());
+                                }
+                            }
+                    )
+            );
+        }
+    }
+
+    private List<Post> getNewPosts() {
         List<Post> newPosts = new LinkedList<>();
 
         List<Post> currentPostList = parseAndGetPostsOnPage(SITE_URL + "/ru/all/");

@@ -1,8 +1,8 @@
-package com.github.ashnext.habr_telegram_bot.telegram.tasks;
+package com.github.ashnext.habr_telegram_bot.telegram.service;
 
+import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
 import com.github.ashnext.habr_telegram_bot.telegram.api.response.ResponseUpdates;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.Update;
-import com.github.ashnext.habr_telegram_bot.telegram.service.TgmBotService;
 import com.github.ashnext.habr_telegram_bot.telegram.service.UpdateHandlingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +18,11 @@ public class UpdateTask {
 
     private int updateId = 0;
 
-    private final TgmBotService tgmBotService;
+    private final TgmBot tgmBot;
 
     private final UpdateHandlingService updateHandlingService;
 
-    public void defineUpdate(Update update) {
+    private void defineUpdate(Update update) {
         if (update.getMyChatMember() != null) {
             updateHandlingService.changeUserStatus(update.getMyChatMember());
         } else if (update.getMessage() != null) {
@@ -35,7 +35,7 @@ public class UpdateTask {
     @Scheduled(fixedDelayString = "${bot.scheduled.update}")
     public void update() {
         Optional<ResponseUpdates> optResponseUpdates =
-                tgmBotService.getTgmBot().getUpdates(updateId + 1, 100);
+                tgmBot.getUpdates(updateId + 1, 100);
 
         optResponseUpdates.ifPresent(responseUpdates -> {
             for (Update update : responseUpdates.getResult()) {

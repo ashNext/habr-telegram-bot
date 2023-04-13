@@ -1,5 +1,6 @@
-package com.github.ashnext.habr_telegram_bot.model;
+package com.github.ashnext.habr_telegram_bot.tag;
 
+import com.github.ashnext.habr_telegram_bot.model.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

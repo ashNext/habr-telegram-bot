@@ -1,6 +1,6 @@
 package com.github.ashnext.habr_telegram_bot.telegram.control.read_later;
 
-import com.github.ashnext.habr_telegram_bot.model.ReadLater;
+import com.github.ashnext.habr_telegram_bot.bookmark.ReadLater;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.InlineKeyboardButton;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.InlineKeyboardMarkup;
 

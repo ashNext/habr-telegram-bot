@@ -1,7 +1,7 @@
-package com.github.ashnext.habr_telegram_bot.repository;
+package com.github.ashnext.habr_telegram_bot.tag.repository;
 
-import com.github.ashnext.habr_telegram_bot.model.Tag;
-import com.github.ashnext.habr_telegram_bot.model.TagGroup;
+import com.github.ashnext.habr_telegram_bot.tag.Tag;
+import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

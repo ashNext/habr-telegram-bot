@@ -1,6 +1,6 @@
 package com.github.ashnext.habr_telegram_bot.telegram.control.tag;
 
-import com.github.ashnext.habr_telegram_bot.model.Tag;
+import com.github.ashnext.habr_telegram_bot.tag.Tag;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.InlineKeyboardButton;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.InlineKeyboardMarkup;
 import org.springframework.data.domain.Page;

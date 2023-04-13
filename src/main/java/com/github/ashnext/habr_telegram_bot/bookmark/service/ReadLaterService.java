@@ -1,8 +1,8 @@
-package com.github.ashnext.habr_telegram_bot.service;
+package com.github.ashnext.habr_telegram_bot.bookmark.service;
 
-import com.github.ashnext.habr_telegram_bot.model.ReadLater;
-import com.github.ashnext.habr_telegram_bot.model.User;
-import com.github.ashnext.habr_telegram_bot.repository.ReadLaterRepository;
+import com.github.ashnext.habr_telegram_bot.bookmark.ReadLater;
+import com.github.ashnext.habr_telegram_bot.user.User;
+import com.github.ashnext.habr_telegram_bot.bookmark.repository.ReadLaterRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

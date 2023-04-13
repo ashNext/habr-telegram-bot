@@ -1,10 +1,10 @@
 package com.github.ashnext.habr_telegram_bot.telegram.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ashnext.habr_telegram_bot.telegram.api.response.*;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.BotCommand;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.InlineKeyboardMarkup;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
