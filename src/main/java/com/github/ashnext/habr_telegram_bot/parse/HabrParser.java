@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class HabrParser {
 
+    public static final String SITE_URL = "https://habr.com";
+
     public static Post parseNewPost(Document postHtml, String postUrl) {
         Element articleElement = getElementByClass(postHtml,
                 "tm-article-presenter__content tm-article-presenter__content_narrow");
@@ -74,7 +76,7 @@ public class HabrParser {
                             "tm-title tm-title_h2");
                     // url
                     Element urlElement = getElementByTag(titleAndLinkElement, "a");
-                    String url = "https://habr.com" + getAttrElement(urlElement, "href");
+                    String url = SITE_URL + getAttrElement(urlElement, "href");
                     //title
                     Element titleElement = getElementByTag(titleAndLinkElement, "span");
                     String title = getTextElement(titleElement);
@@ -88,7 +90,7 @@ public class HabrParser {
                     //hubs
                     List<String> hubs = articleSnippetElement.getElementsByClass("tm-article-snippet__hubs-item")
                             .stream()
-                            .map(element ->  getElementByTag(element, "span").text())
+                            .map(element -> getElementByTag(element, "span").text())
                             .collect(Collectors.toList());
 
                     return new Post(url, title, time, hubs, null, null);

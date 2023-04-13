@@ -17,13 +17,14 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.github.ashnext.habr_telegram_bot.parse.HabrParser.SITE_URL;
+
 public class HabrParseExample {
 
-    private static final String SITE_URL = "https://habr.com";
     private static final int MAX_PAGES = 210;
     private static final int MAX_POSTS = 20;
     private static final String URL_TELEGRAPH = "https://api.telegra.ph/createPage?access_token=b968da509bb76866c35425099bc0989a5ec3b32997d55286c657e6994bbb&title=Sample+Page&return_content=true&author_name=Anonymous&content=[%CONTENT%]";
-    private static final String FAKE_POST_URL = "https://habr.com/ru/company/selectel/blog/555940/";
+    private static final String FAKE_POST_URL = SITE_URL + "/ru/company/selectel/blog/555940/";
 
 
     private final List<Post> posts = new ArrayList<>();

@@ -19,17 +19,19 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 
+import static com.github.ashnext.habr_telegram_bot.parse.HabrParser.SITE_URL;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ParseHabrService {
 
-    private static final String SITE_URL = "https://habr.com";
+    private static final String FIRST_PAGE_URL = SITE_URL + "/ru/all/";
+    private static final String SECOND_PAGE_URL = SITE_URL + "/ru/all/page2/";
+    private static final String TG_INSTANT_VIEW_TEMPLATE = "https://t.me/iv?url=%s&rhash=6d1a1b3a0654c5";
 
     private final TagService tagService;
-
     private final UserService userService;
-
     private final TgmBot tgmBot;
 
     private final Queue<String> previousNewUrlsPosts = new LinkedList<>();
@@ -60,7 +62,7 @@ public class ParseHabrService {
                                 if (send) {
                                     tgmBot.sendMessage(
                                             user.getTelegramChatId(),
-                                            post.getUrl(),
+                                            String.format(TG_INSTANT_VIEW_TEMPLATE, post.getUrl()),
                                             ReadLaterMenu.getButtonsWithAdd());
                                 }
                             }
@@ -72,11 +74,11 @@ public class ParseHabrService {
     private List<Post> getNewPosts() {
         List<Post> newPosts = new LinkedList<>();
 
-        List<Post> currentPostList = parseAndGetPostsOnPage(SITE_URL + "/ru/all/");
+        List<Post> currentPostList = parseAndGetPostsOnPage(FIRST_PAGE_URL);
         Collections.reverse(currentPostList);
 
         if (previousNewUrlsPosts.isEmpty() && !currentPostList.isEmpty()) {
-            List<Post> postUrlsPage2 = parseAndGetPostsOnPage(SITE_URL + "/ru/all/page2/");
+            List<Post> postUrlsPage2 = parseAndGetPostsOnPage(SECOND_PAGE_URL);
             if (!postUrlsPage2.isEmpty()) {
                 Collections.reverse(postUrlsPage2);
                 previousNewUrlsPosts.addAll(postUrlsPage2.stream().map(Post::getUrl).toList());
