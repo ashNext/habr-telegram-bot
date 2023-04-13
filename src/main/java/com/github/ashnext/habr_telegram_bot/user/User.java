@@ -2,33 +2,35 @@ package com.github.ashnext.habr_telegram_bot.user;
 
 import com.github.ashnext.habr_telegram_bot.model.BaseEntity;
 import com.github.ashnext.habr_telegram_bot.tag.Tag;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "`user`")
-@NoArgsConstructor
+@Table(
+        name = "`user`",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"telegramUserId"}, name = "unq$user$telegram_user_id")
+        }
+)
+@NoArgsConstructor(force = true)
 @AllArgsConstructor
 @Getter
 @Setter
 public class User extends BaseEntity {
 
-    @Column(unique = true, nullable = false)
-    private Long telegramUserId;
+    @Column(nullable = false)
+    private final Long telegramUserId;
 
     @Column(nullable = false)
-    private Integer telegramChatId;
+    private final Integer telegramChatId;
 
     @Column(nullable = false, columnDefinition = "bool default true")
-    private boolean active;
+    private boolean active = true;
 
-    @Column(nullable = false, columnDefinition = "bool default false")
-    private boolean subscription;
+    @Column(nullable = false, columnDefinition = "bool default true")
+    private boolean subscription = true;
 
     @Column(name = "tags")
     @ElementCollection(targetClass = Tag.class, fetch = FetchType.LAZY)

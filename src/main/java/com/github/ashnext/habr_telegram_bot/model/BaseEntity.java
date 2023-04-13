@@ -15,6 +15,5 @@ import java.util.UUID;
 public abstract class BaseEntity {
 
     @Id
-    @GeneratedValue
-    protected UUID id;
+    protected final UUID id = UUID.randomUUID();
 }

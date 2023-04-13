@@ -10,8 +10,8 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "postUrl"}))
-@NoArgsConstructor
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "postUrl"}, name = "unq$bookmark$user_id_post_url"))
+@NoArgsConstructor(force = true)
 @AllArgsConstructor
 @Getter
 @Setter
@@ -19,13 +19,13 @@ public class ReadLater extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private final User user;
 
     @Column(nullable = false)
-    private String postUrl;
+    private final String postUrl;
 
     @Column(nullable = false)
-    private String postTitle;
+    private final String postTitle;
 
     @Override
     public String toString() {

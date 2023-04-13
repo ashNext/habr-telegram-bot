@@ -6,24 +6,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 
-@Entity
+@Entity()
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name"}, name = "unq$tag$name")})
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(force = true)
 @Getter
 @Setter
 public class Tag extends BaseEntity {
 
-    @Column(unique = true, nullable = false)
-    private String name;
+    @Column(nullable = false)
+    private final String name;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TagGroup tagGroup;
+    private final TagGroup tagGroup;
 
     @Override
     public String toString() {
