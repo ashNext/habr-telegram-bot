@@ -18,7 +18,7 @@ import javax.persistence.*;
 public class Bookmark extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk$bookmark$id_user_id"))
     private final User user;
 
     @Column(name = "post_url", nullable = false)
