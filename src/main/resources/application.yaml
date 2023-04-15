@@ -20,7 +20,6 @@ spring:
 bot:
   name: "HabrViewBot"
   token: ${HABR_TG_BOT_TOKEN}
-  last-post-url: ""
   scheduled:
     update: 1000
     new-posts: 60000

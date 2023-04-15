@@ -10,7 +10,7 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "postUrl"}, name = "unq$bookmark$user_id_post_url"))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "post_url"}, name = "unq$bookmark$user_id_post_url"))
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 @Getter
@@ -21,10 +21,10 @@ public class Bookmark extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private final User user;
 
-    @Column(nullable = false)
+    @Column(name = "post_url", nullable = false)
     private final String postUrl;
 
-    @Column(nullable = false)
+    @Column(name = "post_title", nullable = false)
     private final String postTitle;
 
     @Override

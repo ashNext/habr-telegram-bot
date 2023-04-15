@@ -20,7 +20,7 @@ public class Tag extends BaseEntity {
     private final String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "tag_group", nullable = false)
     private final TagGroup tagGroup;
 
     @Override

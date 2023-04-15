@@ -2,7 +2,10 @@ package com.github.ashnext.habr_telegram_bot.user;
 
 import com.github.ashnext.habr_telegram_bot.model.BaseEntity;
 import com.github.ashnext.habr_telegram_bot.tag.Tag;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.List;
@@ -11,7 +14,8 @@ import java.util.List;
 @Table(
         name = "`user`",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"telegramUserId"}, name = "unq$user$telegram_user_id")
+                @UniqueConstraint(columnNames = {"telegram_user_id"}, name = "unq$user$telegram_user_id"),
+                @UniqueConstraint(columnNames = {"telegram_chat_id"}, name = "unq$user$telegram_chat_id")
         }
 )
 @NoArgsConstructor(force = true)
@@ -20,10 +24,10 @@ import java.util.List;
 @Setter
 public class User extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(name = "telegram_user_id", nullable = false)
     private final Long telegramUserId;
 
-    @Column(nullable = false)
+    @Column(name = "telegram_chat_id", nullable = false)
     private final Integer telegramChatId;
 
     @Column(nullable = false, columnDefinition = "bool default true")
@@ -48,6 +52,7 @@ public class User extends BaseEntity {
         return "User{" +
                 "id=" + id +
                 ", telegramUserId=" + telegramUserId +
+                ", telegramChatId=" + telegramChatId +
                 ", active=" + active +
                 ", subscription=" + subscription +
                 '}';
