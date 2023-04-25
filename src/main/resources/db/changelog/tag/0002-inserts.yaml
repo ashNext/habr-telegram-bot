@@ -4,7 +4,8 @@ databaseChangeLog:
       author: a.shadrin
       runInTransaction: false
       changes:
-        - sql: "INSERT INTO public.tag (id,name,tag_group) VALUES ('6627edf6-82dc-4f75-98b5-557aa7f51096','artery','COMMON');
+        - sql:
+            sql: "INSERT INTO public.tag (id,name,tag_group) VALUES ('6627edf6-82dc-4f75-98b5-557aa7f51096','artery','COMMON');
   INSERT INTO public.tag (id,name,tag_group) VALUES ('5381fb67-6199-4a4c-9b82-4c33c054cc4d','at32f403a','COMMON');
   INSERT INTO public.tag (id,name,tag_group) VALUES ('7a36b0b1-5c2d-4d58-bf4b-923c702e6559','keil','COMMON');
   INSERT INTO public.tag (id,name,tag_group) VALUES ('f0d43445-fd1f-447e-b725-97f691c057b9','электрогитара','COMMON');
