@@ -23,3 +23,4 @@ bot:
   scheduled:
     update: 1000
     new-posts: 30000
+  reportingTelegramUserId: ${REPORTING_TG_BOT_USER_ID}

@@ -112,10 +112,11 @@ public class ParseHabrService {
             try {
                 return Optional.of(HabrParser.parseNewPost(postHtml, postUrl));
             } catch (HabrParserException e) {
-                log.warn("Warning in parseAndGetPost: Failed to parse the post ({}): {}", postUrl, e.getMessage());
+                log.error("Warning in parseAndGetPost: Failed to parse the post ({}): {}", postUrl, e.getMessage());
+                tgmBot.sendServiceMessage("[parseAndGetPost] postUrl=" + postUrl + "e.message=" + e.getMessage());
             }
         } catch (IOException ioException) {
-            log.warn("Error in parseAndGetPost when getting the document ({}): {}", postUrl, ioException.getMessage(), ioException);
+            log.error("Error in parseAndGetPost when getting the document ({}): {}", postUrl, ioException.getMessage(), ioException);
         }
 
         return Optional.empty();
@@ -128,10 +129,11 @@ public class ParseHabrService {
             try {
                 return HabrParser.parsePostsOnNewPage(html);
             } catch (HabrParserException e) {
-                log.warn("Warning in parseAndGetPostsOnPage: Failed to parse the site ({}): {}", pageUrl, e.getMessage());
+                log.error("Warning in parseAndGetPostsOnPage: Failed to parse the site ({}): {}", pageUrl, e.getMessage());
+                tgmBot.sendServiceMessage("[parseAndGetPostsOnPage] pageUrl=" + pageUrl + "e.message=" + e.getMessage());
             }
         } catch (IOException ioException) {
-            log.warn("Warning in parseAndGetUrlsOnPage when getting the document ({}): {}", pageUrl, ioException.getMessage(),
+            log.error("Warning in parseAndGetUrlsOnPage when getting the document ({}): {}", pageUrl, ioException.getMessage(),
                     ioException);
         }
 

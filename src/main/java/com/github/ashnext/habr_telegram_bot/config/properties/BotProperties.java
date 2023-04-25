@@ -12,11 +12,12 @@ public class BotProperties {
     private String name = "";
     private String token;
     private Scheduled scheduled;
+    private Long reportingTelegramUserId;
 
     @Getter
     @Setter
     public static class Scheduled {
         private String update = "1000";
-        private String newPosts = "600000";
+        private String newPosts = "300000";
     }
 }

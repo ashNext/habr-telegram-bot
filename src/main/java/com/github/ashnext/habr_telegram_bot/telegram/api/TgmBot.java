@@ -29,14 +29,15 @@ public class TgmBot {
     );
 
     private final OkHttpClient client;
-
     private final String url;
+    private final Long serviceUserId;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public TgmBot(String botToken, OkHttpClient okHttpClient) {
+    public TgmBot(String botToken, OkHttpClient okHttpClient, Long serviceUserId) {
         client = okHttpClient;
         url = TGM_URL_API + "/bot" + botToken;
+        this.serviceUserId = serviceUserId;
         setMyCommands(COMMANDS_LIST);
     }
 
@@ -83,6 +84,12 @@ public class TgmBot {
         } catch (IOException e) {
             log.error("Invalid call: ", e);
             return Optional.empty();
+        }
+    }
+
+    public void sendServiceMessage(String message) {
+        if (serviceUserId != null && !message.isEmpty()) {
+            sendMessage(serviceUserId, "⚠️ " + message);
         }
     }
 

@@ -26,7 +26,7 @@ public class CommonConfig {
 
     @Bean
     public TgmBot TgmBotService(OkHttpClient okHttpClient) {
-        return new TgmBot(botProperties.getToken(), okHttpClient);
+        return new TgmBot(botProperties.getToken(), okHttpClient, botProperties.getReportingTelegramUserId());
     }
 
 }
