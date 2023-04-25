@@ -93,14 +93,14 @@ public class TgmBot {
         return getResponse(call, ResponseUpdates.class);
     }
 
-    public Optional<ResponseMessage> sendMessage(int chatId, String text) {
+    public Optional<ResponseMessage> sendMessage(long chatId, String text) {
         Call call = getCall("sendMessage",
                 Map.of("chat_id", String.valueOf(chatId), "text", text));
 
         return getResponse(call, ResponseMessage.class);
     }
 
-    public Optional<ResponseMessage> sendMessage(int chatId, String text, InlineKeyboardMarkup replyMarkup) {
+    public Optional<ResponseMessage> sendMessage(long chatId, String text, InlineKeyboardMarkup replyMarkup) {
         try {
             Call call = getCall("sendMessage",
                     Map.of("chat_id", String.valueOf(chatId),
@@ -113,7 +113,7 @@ public class TgmBot {
         return Optional.empty();
     }
 
-    public Optional<ResponseBoolean> deleteMessage(int chatId, int messageId) {
+    public Optional<ResponseBoolean> deleteMessage(long chatId, int messageId) {
         Call call = getCall("deleteMessage",
                 Map.of("chat_id", String.valueOf(chatId), "message_id", String.valueOf(messageId)));
         return getResponse(call, ResponseBoolean.class);
@@ -170,7 +170,7 @@ public class TgmBot {
         return Optional.empty();
     }
 
-    public Optional<ResponseMessage> editMessageText(int chatId, int messageId, String text,
+    public Optional<ResponseMessage> editMessageText(long chatId, int messageId, String text,
                                                      InlineKeyboardMarkup replyMarkup) {
         try {
             Call call = getCall("editMessageText",

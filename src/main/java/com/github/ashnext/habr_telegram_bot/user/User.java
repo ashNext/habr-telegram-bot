@@ -28,7 +28,7 @@ public class User extends BaseEntity {
     private final Long telegramUserId;
 
     @Column(name = "telegram_chat_id", nullable = false)
-    private final Integer telegramChatId;
+    private final Long telegramChatId;
 
     @Column(nullable = false, columnDefinition = "bool default true")
     private boolean active = true;
@@ -36,13 +36,27 @@ public class User extends BaseEntity {
     @Column(nullable = false, columnDefinition = "bool default true")
     private boolean subscription = true;
 
-    @Column(name = "tags")
-    @ElementCollection(targetClass = Tag.class, fetch = FetchType.LAZY)
-    @CollectionTable(name = "user_tags", joinColumns = @JoinColumn(name = "user_id"))
-    @OrderBy("name ASC")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_tag",
+            joinColumns = @JoinColumn(
+                    name = "user_id",
+                    nullable = false,
+                    foreignKey = @ForeignKey(name = "fk$user_tag$id_user_id")
+            ),
+            inverseJoinColumns = @JoinColumn(
+                    name = "tag_id",
+                    nullable = false,
+                    foreignKey = @ForeignKey(name = "fk$user_tag$id_tag_id")
+            ),
+            uniqueConstraints = @UniqueConstraint(
+                    columnNames = {"user_id", "tag_id"},
+                    name = "unq$user_tag$user_id_tag_id"
+            )
+    )
     private List<Tag> tags;
 
-    public User(Long telegramUserId, Integer telegramChatId) {
+    public User(Long telegramUserId, Long telegramChatId) {
         this.telegramUserId = telegramUserId;
         this.telegramChatId = telegramChatId;
     }

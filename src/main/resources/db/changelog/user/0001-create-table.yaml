@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0001-user-create-table
+      author: a.shadrin
+      runInTransaction: false
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: user
+      changes:
+        - createTable:
+            tableName: user
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: telegram_user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: telegram_chat_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: active
+                  type: boolean
+                  defaultValue: "true"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: subscription
+                  type: boolean
+                  defaultValue: "true"
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: user
+            columnNames: telegram_user_id
+            constraintName: unq$user$telegram_user_id
+        - addUniqueConstraint:
+            tableName: user
+            columnNames: telegram_chat_id
+            constraintName: unq$user$telegram_chat_id

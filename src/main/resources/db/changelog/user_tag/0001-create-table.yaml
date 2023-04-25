@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0001-user_tag-create-table
+      author: a.shadrin
+      runInTransaction: false
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: user_tag
+      changes:
+        - createTable:
+            tableName: user_tag
+            columns:
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tag_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: user_tag
+            columnNames: user_id, tag_id
+            constraintName: unq$user_tag$user_id_tag_id
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: user_tag
+            constraintName: fk$user_tag$id_user_id
+            referencedColumnNames: id
+            referencedTableName: user
+        - addForeignKeyConstraint:
+            baseColumnNames: tag_id
+            baseTableName: user_tag
+            constraintName: fk$user_tag$id_tag_id
+            referencedColumnNames: id
+            referencedTableName: tag

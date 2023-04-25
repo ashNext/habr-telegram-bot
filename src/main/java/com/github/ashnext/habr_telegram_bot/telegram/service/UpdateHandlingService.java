@@ -132,7 +132,7 @@ public class UpdateHandlingService {
         final User user = userService.getByTelegramUserId(callbackQuery.getUser().getId());
         final String cbqData = callbackQuery.getData();
         final Message cbqMessage = callbackQuery.getMessage();
-        final int chatId = cbqMessage.getChat().getId();
+        final long chatId = cbqMessage.getChat().getId();
         final int messageId = cbqMessage.getMessageId();
 
         if (cbqData.equalsIgnoreCase("delete") || cbqData.equalsIgnoreCase("close")) {

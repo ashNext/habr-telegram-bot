@@ -21,10 +21,10 @@ public interface TagRepository extends JpaRepository<Tag, UUID> {
 
     @Query(
             value = "SELECT tg.* FROM tag tg LEFT JOIN " +
-                    "(SELECT * FROM user_tags u WHERE u.user_id = :userId) ut ON tg.id = ut.tags_id " +
+                    "(SELECT * FROM user_tag u WHERE u.user_id = :userId) ut ON tg.id = ut.tag_id " +
                     "WHERE tg.tag_group = :tagGroup AND ut.user_id IS NULL ORDER BY tg.name ASC",
             countQuery = "SELECT count(tg.*) FROM tag tg LEFT JOIN " +
-                    "(SELECT * FROM user_tags u WHERE u.user_id = :userId) ut ON tg.id = ut.tags_id " +
+                    "(SELECT * FROM user_tag u WHERE u.user_id = :userId) ut ON tg.id = ut.tag_id " +
                     "WHERE tg.tag_group = :tagGroup AND ut.user_id IS NULL",
             nativeQuery = true)
     Page<Tag> findWithoutUserTagsByUserIdAndTagGroup(@Param("userId") UUID userId,

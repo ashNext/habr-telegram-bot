@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0001-bookmark-create-table
+      author: a.shadrin
+      runInTransaction: false
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: bookmark
+      changes:
+        - createTable:
+            tableName: bookmark
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: post_url
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: post_title
+                  type: text
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: bookmark
+            columnNames: user_id, post_url
+            constraintName: unq$bookmark$user_id_post_url
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: bookmark
+            constraintName: fk$bookmark$id_user_id
+            referencedColumnNames: id
+            referencedTableName: user

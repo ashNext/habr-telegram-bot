@@ -15,11 +15,11 @@ spring:
         format_sql: false
     generate-ddl: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 
 bot:
   name: "HabrViewBot"
   token: ${HABR_TG_BOT_TOKEN}
   scheduled:
     update: 1000
-    new-posts: 60000
+    new-posts: 30000

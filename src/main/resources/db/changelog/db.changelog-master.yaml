@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - includeAll:
+      relativeToChangelogFile: true
+      path: user/
+  - includeAll:
+      relativeToChangelogFile: true
+      path: bookmark/
+  - includeAll:
+      relativeToChangelogFile: true
+      path: tag/
+  - includeAll:
+      relativeToChangelogFile: true
+      path: user_tag/
