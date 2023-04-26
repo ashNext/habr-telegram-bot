@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    show-sql: true
+  main:
+    banner-mode: "off"
+  datasource:
+    url: jdbc:postgresql://postgres:5432/${spring.datasource.name}
+
+bot:
+  name: "HabrViewBot"
+  scheduled:
+    update: 1000
+    new-posts: 300000
