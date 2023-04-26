@@ -2,8 +2,8 @@
 docker stop bot || true \
 && docker rm bot --force \
 && docker rmi tg-bot --force \
-&& docker build .. -t tg-bot \
-&& docker run -d -m 256m \
+&& docker build /root/bot-project -t tg-bot \
+&& docker run -d -m 512m \
   --name bot \
   --network nw-pg-bot \
   -e DB_PASSWORD=$DB_PASSWORD \
