@@ -21,7 +21,7 @@ import static com.github.ashnext.habr_telegram_bot.parse.HabrParser.SITE_URL;
 
 public class HabrParseExample {
 
-    private static final int MAX_PAGES = 210;
+    private static final int MAX_PAGES = 20;
     private static final int MAX_POSTS = 20;
     private static final String URL_TELEGRAPH = "https://api.telegra.ph/createPage?access_token=b968da509bb76866c35425099bc0989a5ec3b32997d55286c657e6994bbb&title=Sample+Page&return_content=true&author_name=Anonymous&content=[%CONTENT%]";
     private static final String FAKE_POST_URL = SITE_URL + "/ru/company/selectel/blog/555940/";
@@ -43,22 +43,32 @@ public class HabrParseExample {
         parseHabr.getPosts().forEach(
                 post -> {
                     setHubs.addAll(post.getHubs());
-                    try {
-                        setTags.addAll(parseHabr.parsePost(post.getUrl()).getTags());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+//                    try {
+//                        setTags.addAll(parseHabr.parsePost(post.getUrl()).getTags());
+//                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
                 }
         );
 
-        setHubs.forEach(hub -> hubsString.append("('").append(hub).append("'), "));
+        setHubs.forEach(
+                hub -> {
+                    String v = "INSERT INTO public.hub (id,name,hub_group) VALUES ('" + UUID.randomUUID() + "','" + hub;
+                    if (hub.startsWith("Блог компании ")) {
+                        v = v + "','BLOG');";
+                    } else {
+                        v = v + "','COMMON');";
+                    }
+                    hubsString.append(v).append("\n");
+                }
+        );
         setTags.forEach(hub -> tagsString.append("('").append(hub).append("'), "));
 
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\hubs_file.txt", true))) {
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\hubs_file_last.txt", true))) {
             writer.append(hubsString);
         }
 
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\tags_file.txt", true))) {
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\tags_file_last.txt", true))) {
             writer.append(tagsString);
         }
 

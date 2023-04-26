@@ -1,7 +1,7 @@
 package com.github.ashnext.habr_telegram_bot.user;
 
 import com.github.ashnext.habr_telegram_bot.model.BaseEntity;
-import com.github.ashnext.habr_telegram_bot.tag.Tag;
+import com.github.ashnext.habr_telegram_bot.hub.Hub;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,23 +38,23 @@ public class User extends BaseEntity {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "user_tag",
+            name = "user_hub",
             joinColumns = @JoinColumn(
                     name = "user_id",
                     nullable = false,
-                    foreignKey = @ForeignKey(name = "fk$user_tag$id_user_id")
+                    foreignKey = @ForeignKey(name = "fk$user_hub$id_user_id")
             ),
             inverseJoinColumns = @JoinColumn(
-                    name = "tag_id",
+                    name = "hub_id",
                     nullable = false,
-                    foreignKey = @ForeignKey(name = "fk$user_tag$id_tag_id")
+                    foreignKey = @ForeignKey(name = "fk$user_hub$id_hub_id")
             ),
             uniqueConstraints = @UniqueConstraint(
-                    columnNames = {"user_id", "tag_id"},
-                    name = "unq$user_tag$user_id_tag_id"
+                    columnNames = {"user_id", "hub_id"},
+                    name = "unq$user_hub$user_id_hub_id"
             )
     )
-    private List<Tag> tags;
+    private List<Hub> hubs;
 
     public User(Long telegramUserId, Long telegramChatId) {
         this.telegramUserId = telegramUserId;

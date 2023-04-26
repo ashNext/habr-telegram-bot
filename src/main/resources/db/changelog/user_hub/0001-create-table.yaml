@@ -1,16 +1,16 @@
 databaseChangeLog:
   - changeSet:
-      id: 0001-user_tag-create-table
+      id: 0001-user_hub-create-table
       author: a.shadrin
       runInTransaction: false
       preConditions:
         - onFail: MARK_RAN
         - not:
             - tableExists:
-                tableName: user_tag
+                tableName: user_hub
       changes:
         - createTable:
-            tableName: user_tag
+            tableName: user_hub
             columns:
               - column:
                   name: user_id
@@ -18,23 +18,23 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: tag_id
+                  name: hub_id
                   type: uuid
                   constraints:
                     nullable: false
         - addUniqueConstraint:
-            tableName: user_tag
-            columnNames: user_id, tag_id
-            constraintName: unq$user_tag$user_id_tag_id
+            tableName: user_hub
+            columnNames: user_id, hub_id
+            constraintName: unq$user_hub$user_id_hub_id
         - addForeignKeyConstraint:
             baseColumnNames: user_id
-            baseTableName: user_tag
-            constraintName: fk$user_tag$id_user_id
+            baseTableName: user_hub
+            constraintName: fk$user_hub$id_user_id
             referencedColumnNames: id
             referencedTableName: user
         - addForeignKeyConstraint:
-            baseColumnNames: tag_id
-            baseTableName: user_tag
-            constraintName: fk$user_tag$id_tag_id
+            baseColumnNames: hub_id
+            baseTableName: user_hub
+            constraintName: fk$user_hub$id_hub_id
             referencedColumnNames: id
-            referencedTableName: tag
+            referencedTableName: hub

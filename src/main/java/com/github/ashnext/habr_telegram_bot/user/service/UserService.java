@@ -1,9 +1,9 @@
 package com.github.ashnext.habr_telegram_bot.user.service;
 
-import com.github.ashnext.habr_telegram_bot.tag.Tag;
-import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
+import com.github.ashnext.habr_telegram_bot.hub.Hub;
+import com.github.ashnext.habr_telegram_bot.hub.HubGroup;
 import com.github.ashnext.habr_telegram_bot.user.User;
-import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
+import com.github.ashnext.habr_telegram_bot.hub.service.HubService;
 import com.github.ashnext.habr_telegram_bot.user.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    private final TagService tagService;
+    private final HubService hubService;
 
     public User create(User user) {
         user.setActive(true);
@@ -35,63 +35,63 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public Optional<Tag> addTagByUserIdAndTagId(UUID userId, UUID tagId) {
-        Optional<User> user = getByIdWithTags(userId);
-        Optional<Tag> tag = tagService.getById(tagId);
+    public Optional<Hub> addHubByUserIdAndHubId(UUID userId, UUID hubId) {
+        Optional<User> user = getByIdWithHubs(userId);
+        Optional<Hub> hub = hubService.getById(hubId);
 
-        if (tag.isPresent() && user.isPresent()) {
-            List<Tag> userTags = user.get().getTags();
-            if (!userTags.contains(tag.get())) {
-                user.get().getTags().add(tag.get());
+        if (hub.isPresent() && user.isPresent()) {
+            List<Hub> userHubs = user.get().getHubs();
+            if (!userHubs.contains(hub.get())) {
+                user.get().getHubs().add(hub.get());
                 update(user.get());
-                return tag;
+                return hub;
             }
         }
         return Optional.empty();
     }
 
-    public Optional<Tag> removeTagByUserIdAndTagId(UUID userId, UUID tagId) {
-        Optional<User> user = getByIdWithTags(userId);
-        Optional<Tag> tag = tagService.getById(tagId);
+    public Optional<Hub> removeHubByUserIdAndHubId(UUID userId, UUID hubId) {
+        Optional<User> user = getByIdWithHubs(userId);
+        Optional<Hub> hub = hubService.getById(hubId);
 
-        if (tag.isPresent() && user.isPresent()) {
-            List<Tag> userTags = user.get().getTags();
-            if (userTags.contains(tag.get())) {
-                user.get().getTags().remove(tag.get());
+        if (hub.isPresent() && user.isPresent()) {
+            List<Hub> userHubs = user.get().getHubs();
+            if (userHubs.contains(hub.get())) {
+                user.get().getHubs().remove(hub.get());
                 update(user.get());
-                return tag;
+                return hub;
             }
         }
         return Optional.empty();
     }
 
-    public Page<Tag> getByIdAndTagGroup(UUID userId, TagGroup tagGroup, int page, int size) {
-        Optional<User> user = userRepository.findWithTagsByIdAndTagGroup(userId, tagGroup);
+    public Page<Hub> getByIdAndHubGroup(UUID userId, HubGroup hubGroup, int page, int size) {
+        Optional<User> user = userRepository.findWithHubsByIdAndHubGroup(userId, hubGroup);
 
         if (user.isPresent()) {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
 
-            List<Tag> tags = user.get().getTags();
+            List<Hub> hubs = user.get().getHubs();
 
             int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), tags.size());
+            int end = Math.min((start + pageable.getPageSize()), hubs.size());
 
-            if (tags.subList(start, end).isEmpty()) {
+            if (hubs.subList(start, end).isEmpty()) {
                 pageable = PageRequest.of(--page, size, Sort.by(Sort.Direction.ASC, "name"));
                 start = (int) pageable.getOffset();
-                end = Math.min((start + pageable.getPageSize()), tags.size());
+                end = Math.min((start + pageable.getPageSize()), hubs.size());
             }
 
             return new PageImpl<>(
-                    tags.subList(start, end),
+                    hubs.subList(start, end),
                     pageable,
-                    tags.size());
+                    hubs.size());
         }
         return null;
     }
 
-    private Optional<User> getByIdWithTags(UUID id) {
-        return userRepository.findByIdWithTags(id);
+    private Optional<User> getByIdWithHubs(UUID id) {
+        return userRepository.findByIdWithHubs(id);
     }
 
     public User getByTelegramUserId(Long telegramUserId) {
@@ -123,7 +123,7 @@ public class UserService {
         return userRepository.findAllByActiveTrueAndSubscriptionTrue();
     }
 
-    public List<User> getAllWithTagsByActiveAndSub() {
-        return userRepository.findAllWithTagsByActiveAndSub();
+    public List<User> getAllWithHubsByActiveAndSub() {
+        return userRepository.findAllWithHubsByActiveAndSub();
     }
 }

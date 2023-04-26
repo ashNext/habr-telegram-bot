@@ -3,8 +3,8 @@ package com.github.ashnext.habr_telegram_bot.parse.service;
 import com.github.ashnext.habr_telegram_bot.parse.HabrParser;
 import com.github.ashnext.habr_telegram_bot.parse.HabrParserException;
 import com.github.ashnext.habr_telegram_bot.parse.model.Post;
-import com.github.ashnext.habr_telegram_bot.tag.Tag;
-import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
+import com.github.ashnext.habr_telegram_bot.hub.Hub;
+import com.github.ashnext.habr_telegram_bot.hub.service.HubService;
 import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
 import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkMenu;
 import com.github.ashnext.habr_telegram_bot.user.User;
@@ -30,7 +30,7 @@ public class ParseHabrService {
     private static final String FIRST_PAGE_URL = SITE_URL + "/ru/all/";
     private static final String SECOND_PAGE_URL = SITE_URL + "/ru/all/page2/";
 
-    private final TagService tagService;
+    private final HubService hubService;
     private final UserService userService;
     private final TgmBot tgmBot;
 
@@ -41,18 +41,18 @@ public class ParseHabrService {
         log.info("[updateUserFeed] check new posts");
         List<Post> postList = getNewPosts();
         if (!postList.isEmpty()) {
-            List<User> userList = userService.getAllWithTagsByActiveAndSub();
+            List<User> userList = userService.getAllWithHubsByActiveAndSub();
 
             postList.forEach(post ->
                     userList.forEach(
                             user -> {
                                 boolean send = false;
 
-                                if (user.getTags().isEmpty() || post.getTags().isEmpty()) {
+                                if (user.getHubs().isEmpty() || post.getHubs().isEmpty()) {
                                     send = true;
                                 } else {
-                                    for (Tag userTag : user.getTags()) {
-                                        if (post.getTags().contains(userTag.getName())) {
+                                    for (Hub userHub : user.getHubs()) {
+                                        if (post.getHubs().contains(userHub.getName())) {
                                             send = true;
                                             break;
                                         }
@@ -92,7 +92,7 @@ public class ParseHabrService {
             if (!previousNewUrlsPosts.contains(currentPost.getUrl())) {
                 parseAndGetPost(currentPost.getUrl()).ifPresent(
                         post -> {
-                            post.getTags().forEach(tagService::addIfAbsent);
+                            post.getHubs().forEach(hubService::addIfAbsent);
 
                             newPosts.add(post);
                             previousNewUrlsPosts.poll();

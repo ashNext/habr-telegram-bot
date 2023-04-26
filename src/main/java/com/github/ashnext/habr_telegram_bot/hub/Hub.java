@@ -1,4 +1,4 @@
-package com.github.ashnext.habr_telegram_bot.tag;
+package com.github.ashnext.habr_telegram_bot.hub;
 
 import com.github.ashnext.habr_telegram_bot.model.BaseEntity;
 import lombok.Getter;
@@ -9,26 +9,26 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity()
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name"}, name = "unq$tag$name")})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name"}, name = "unq$hub$name")})
 @RequiredArgsConstructor
 @NoArgsConstructor(force = true)
 @Getter
 @Setter
-public class Tag extends BaseEntity {
+public class Hub extends BaseEntity {
 
     @Column(nullable = false)
     private final String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tag_group", nullable = false)
-    private final TagGroup tagGroup;
+    @Column(name = "hub_group", nullable = false)
+    private final HubGroup hubGroup;
 
     @Override
     public String toString() {
-        return "Tag{" +
+        return "Hub{" +
                 "id=" + id +
                 ", name=" + name +
-                ", tagGroup=" + tagGroup +
+                ", hubGroup=" + hubGroup +
                 '}';
     }
 }

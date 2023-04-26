@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum Menu {
-    TG("tg"),
+    HB("hb"),
     BM("bm");
 
     private final String text;

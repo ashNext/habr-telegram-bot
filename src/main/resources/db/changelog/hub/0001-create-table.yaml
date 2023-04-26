@@ -1,16 +1,16 @@
 databaseChangeLog:
   - changeSet:
-      id: 0001-tag-create-table
+      id: 0001-hub-create-table
       author: a.shadrin
       runInTransaction: false
       preConditions:
         - onFail: MARK_RAN
         - not:
             - tableExists:
-                tableName: tag
+                tableName: hub
       changes:
         - createTable:
-            tableName: tag
+            tableName: hub
             columns:
               - column:
                   name: id
@@ -23,11 +23,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: tag_group
+                  name: hub_group
                   type: varchar(255)
                   constraints:
                     nullable: false
         - addUniqueConstraint:
-            tableName: tag
+            tableName: hub
             columnNames: name
-            constraintName: unq$tag$name
+            constraintName: unq$hub$name

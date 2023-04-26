@@ -1,0 +1,63 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0002-hub-inserts
+      author: a.shadrin
+      runInTransaction: false
+      changes:
+        - sql:
+            sql: "INSERT INTO public.hub (id,name,hub_group) VALUES ('06591c68-de3b-4191-982e-d7574d0872e7','Искусственный интеллект','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('fa5a202c-af6b-4927-aa5c-8af8a312227e','Карьера в IT-индустрии','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('0556bf4b-6cc6-4051-a940-b6bc92420a1d','Блог компании OTUS','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('f287ee1d-58f7-470a-80e5-578be4ee4ddd','PostgreSQL','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('b91e2360-2543-4fed-b086-fe4271945934','DIY или Сделай сам','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('614f7f04-fdf7-4e94-a702-ab95d35aa2b4','Управление продуктом','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('3ee29e8f-5662-436d-9922-6c8f855d0ce0','Управление разработкой','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('7398bb19-cafc-45b7-8d23-b1292f24729a','Разработка веб-сайтов','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('f3ebb8a8-a14a-4bc8-bfd0-8429d54212ea','Разработка мобильных приложений','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('20e913c5-e6b2-4639-98a8-2af9d63bf060','Социальные сети и сообщества','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('e24a4222-13e0-4c48-9306-066e3bcc651d','Управление персоналом','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('dad095a9-b1c3-4cf5-8e05-ab2edebd2231','Разработка под Windows','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('95f0bf50-c7da-468e-bb56-02b77fd16cda','Блог компании lsFusion','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('66d7d1c1-d464-4f72-bccf-f37e02440df5','Разработка игр','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('6e358fbf-96c1-4c82-93a8-369f26e7a176','Tarantool','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('e306dd77-1f4c-45ea-a946-60ba55458360','Блог компании IT-People','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('331d409c-ec5d-4bb0-92ac-57bae64afc80','Администрирование баз данных','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('e5a7d137-2f1f-46af-8eed-36ad504c4dea','IT-компании','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('c1d8a6da-e4df-41f1-a0b6-125bd2fc9b2d','Финансы в IT','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('0f7130a7-060f-4daf-9304-82d915e942de','Машинное обучение','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('aa54f36a-1787-43a7-ab0a-156852619245','Тестирование IT-систем','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('bb7d50d2-1afb-43e0-a63e-b763e3eeccca','Разработка под Android','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('38cf573d-79d1-44e8-9832-662edf166659','Блог компании inDrive.Tech','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('e5cde9db-06e2-4da1-a000-e9f303176052','DevOps','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('36962c13-0a7b-4624-a7ba-7d836621bba3','Блог компании Selectel','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('e523f8da-da2f-4880-9296-e26ab460f771','Визуальное программирование','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('f3f59758-4e5b-4411-a9df-cfe47ae2ead2','Программирование','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('a6b756df-0f6b-4cd4-b56c-8b5a9ee2dfa6','Блог компании Ozon Tech','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('f81dda7f-8a3a-4a56-8f97-2ea77da8d7cf','IT-инфраструктура','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('4de6c5fc-8d27-4213-888e-b9c7b6c7eb39','Блог компании Southbridge','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('bdd5b53a-b183-4706-95da-8d9901a65118','Продвижение игр','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('25ca24e7-3837-41a5-baf8-34a70b2953c0','Блог компании билайн','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('cc0a6066-bcbe-4cbb-bbf9-e73055f970fe','Учебный процесс в IT','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('c50a7b35-5b9d-4e72-b160-72a066e19071','Разработка на Raspberry Pi','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('97dfe2d3-81b9-4f5f-9dde-3a855b1f46e4','Научно-популярное','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('b8486c81-db66-4aef-b278-cdbdccbbebe4','Информационная безопасность','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('0708ca42-7fd8-4f2a-8752-b3f56d95cef0','Microsoft SQL Server','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('9901a673-d7e2-47eb-b992-cb8621cd4b4f','Тестирование веб-сервисов','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('dd910859-b717-48d8-bf8b-daef6c9b2e71','История IT','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('248e7640-795d-458e-9ae6-317c7ae97f72','Блог компании JUG Ru Group','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('7aa227ae-86b9-4515-be16-91039c9c2bfa','NoSQL','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('15ea5efd-5880-4fc0-9d54-f39a9540e6ba','Анализ и проектирование систем','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('33ff27e5-0021-47f8-8626-6098fffec0f3','Блог компании РСХБ-Интех (Россельхозбанк)','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('686e8d1d-1970-48ba-8b74-3384481c7796','Схемотехника','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('75c27db1-5c4c-426a-8f16-d87f9d08dca9','Интернет-маркетинг','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('7091e759-7218-4ba5-ad02-621fe9e322f4','Совершенный код','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('a67138aa-b4c8-4644-b21c-bb2ff099a4de','Программирование микроконтроллеров','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('0dabc575-cde1-4261-82dc-252e8cf08cf4','Блог компании RUVDS.com','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('9858ea64-e222-4975-ad5d-a1897ebdd1af','Разработка под iOS','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('157115ed-f05c-467c-ba80-b9af3285e66a','Блог компании KTS','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('0bc25c95-9a29-4bb2-9353-4fe4cca76787','Блог компании Garage Eight','BLOG');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('b9793fa6-ffad-4ac9-adf6-f60dd548e2b4','Исследования и прогнозы в IT','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('b3a8dc34-f337-4473-89a0-ecb4b720cabf','Ненормальное программирование','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('f9b5b53b-fcbc-4642-b479-71edd2441ff6','Тестирование мобильных приложений','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('40e3d21c-9672-4e25-b902-e80e71142273','Управление проектами','COMMON');
+INSERT INTO public.hub (id,name,hub_group) VALUES ('bf47d6d0-2b5c-422d-a801-a242bea59315','Конференции','COMMON');"

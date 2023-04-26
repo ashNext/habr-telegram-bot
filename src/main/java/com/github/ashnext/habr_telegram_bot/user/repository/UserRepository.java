@@ -1,6 +1,6 @@
 package com.github.ashnext.habr_telegram_bot.user.repository;
 
-import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
+import com.github.ashnext.habr_telegram_bot.hub.HubGroup;
 import com.github.ashnext.habr_telegram_bot.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,16 +12,16 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.tags WHERE u.id=:id")
-    Optional<User> findByIdWithTags(@Param("id") UUID id);
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.hubs WHERE u.id=:id")
+    Optional<User> findByIdWithHubs(@Param("id") UUID id);
 
     User findByTelegramUserId(@Param("telegramUserId") Long telegramUserId);
 
     List<User> findAllByActiveTrueAndSubscriptionTrue();
 
-    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.tags WHERE u.active=true AND u.subscription=true")
-    List<User> findAllWithTagsByActiveAndSub();
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.hubs WHERE u.active=true AND u.subscription=true")
+    List<User> findAllWithHubsByActiveAndSub();
 
-    @Query("SELECT u FROM User u JOIN FETCH u.tags t WHERE u.id=:id AND t.tagGroup=:tagGroup")
-    Optional<User> findWithTagsByIdAndTagGroup(@Param("id") UUID id, @Param("tagGroup") TagGroup tagGroup);
+    @Query("SELECT u FROM User u JOIN FETCH u.hubs t WHERE u.id=:id AND t.hubGroup=:hubGroup")
+    Optional<User> findWithHubsByIdAndHubGroup(@Param("id") UUID id, @Param("hubGroup") HubGroup hubGroup);
 }

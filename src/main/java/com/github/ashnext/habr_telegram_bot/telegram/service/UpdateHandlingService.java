@@ -4,15 +4,15 @@ import com.github.ashnext.habr_telegram_bot.bookmark.Bookmark;
 import com.github.ashnext.habr_telegram_bot.bookmark.service.BookmarkService;
 import com.github.ashnext.habr_telegram_bot.parse.model.Post;
 import com.github.ashnext.habr_telegram_bot.parse.service.ParseHabrService;
-import com.github.ashnext.habr_telegram_bot.tag.Tag;
-import com.github.ashnext.habr_telegram_bot.tag.TagGroup;
-import com.github.ashnext.habr_telegram_bot.tag.service.TagService;
+import com.github.ashnext.habr_telegram_bot.hub.Hub;
+import com.github.ashnext.habr_telegram_bot.hub.HubGroup;
+import com.github.ashnext.habr_telegram_bot.hub.service.HubService;
 import com.github.ashnext.habr_telegram_bot.telegram.api.Command;
 import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.*;
 import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkButton;
 import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkMenu;
-import com.github.ashnext.habr_telegram_bot.telegram.control.tag.*;
+import com.github.ashnext.habr_telegram_bot.telegram.control.hub.*;
 import com.github.ashnext.habr_telegram_bot.user.User;
 import com.github.ashnext.habr_telegram_bot.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ public class UpdateHandlingService {
 
     private final ParseHabrService parseHabrService;
 
-    private final TagService tagService;
+    private final HubService hubService;
 
     public void processMessage(Message message) {
         final String firstName = message.getTgmUser().getFirstName();
@@ -83,11 +83,11 @@ public class UpdateHandlingService {
                         msg = msg + " empty";
                     }
                 }
-                case TAGS -> {
+                case HUBS -> {
                     tgmBot.deleteMessage(message.getChat().getId(), message.getMessageId());
-                    buttons = TagMenu.getTagManagementButtons();
+                    buttons = HubMenu.getHubManagementButtons();
 
-                    msg = "Tag management:";
+                    msg = "Hub management:";
                     if (buttons.getInlineKeyboard().length == 0) {
                         msg = msg + " empty";
                     }
@@ -193,75 +193,75 @@ public class UpdateHandlingService {
                     );
                 }
             }
-        } else if (cbqData.startsWith("tg:")) {
+        } else if (cbqData.startsWith("hb:")) {
             String answerCallbackQueryText = "";
             String captionMenu;
             InlineKeyboardMarkup keyboard;
 
-            TagButton pressedButton = TagMenu.getButton(cbqData);
+            HubButton pressedButton = HubMenu.getButton(cbqData);
 
-            if (pressedButton.getActionTagButton() == ActionTagButton.MANAGEMENT) {
-                captionMenu = "Tag management";
-                keyboard = TagMenu.getTagManagementButtons();
+            if (pressedButton.getActionHubButton() == ActionHubButton.MANAGEMENT) {
+                captionMenu = "Hub management";
+                keyboard = HubMenu.getHubManagementButtons();
             } else {
-                Page<Tag> pageTags = null;
+                Page<Hub> pageHubs = null;
                 int page = pressedButton.getPage();
 
-                switch (pressedButton.getActionTagButton()) {
+                switch (pressedButton.getActionHubButton()) {
                     case ADD -> {
-                        Optional<Tag> addedTag = userService
-                                .addTagByUserIdAndTagId(user.getId(), UUID.fromString(pressedButton.getData()));
+                        Optional<Hub> addedHub = userService
+                                .addHubByUserIdAndHubId(user.getId(), UUID.fromString(pressedButton.getData()));
 
-                        answerCallbackQueryText = addedTag
-                                .map(tag -> "Tag " + tag.getName() + " added")
-                                .orElse("The tag has already been added");
-                        if (pressedButton.getGroupTag() == GroupTag.ALL_TAGS) {
+                        answerCallbackQueryText = addedHub
+                                .map(hub -> "Hab " + hub.getName() + " added")
+                                .orElse("The hab has already been added");
+                        if (pressedButton.getGroupHub() == GroupHub.ALL_HUBS) {
                             tgmBot.answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
                             return;
                         }
                     }
                     case REMOVE -> {
-                        Optional<Tag> removedTag = userService
-                                .removeTagByUserIdAndTagId(user.getId(), UUID.fromString(pressedButton.getData()));
+                        Optional<Hub> removedHub = userService
+                                .removeHubByUserIdAndHubId(user.getId(), UUID.fromString(pressedButton.getData()));
 
-                        answerCallbackQueryText = removedTag
-                                .map(tag -> "Tag " + tag.getName() + " removed")
-                                .orElse("The tag has already been removed");
+                        answerCallbackQueryText = removedHub
+                                .map(hub -> "Hub " + hub.getName() + " removed")
+                                .orElse("The hub has already been removed");
                     }
                 }
 
-                TagGroup tagGroup;
-                if (pressedButton.getTypeTag() == TypeTag.BLOG) {
+                HubGroup hubGroup;
+                if (pressedButton.getTypeHub() == TypeHub.BLOG) {
                     captionMenu = "company blogs";
-                    tagGroup = TagGroup.BLOG;
+                    hubGroup = HubGroup.BLOG;
                 } else {
                     captionMenu = "common";
-                    tagGroup = TagGroup.COMMON;
+                    hubGroup = HubGroup.COMMON;
                 }
 
-                switch (pressedButton.getGroupTag()) {
-                    case ALL_TAGS -> {
+                switch (pressedButton.getGroupHub()) {
+                    case ALL_HUBS -> {
                         captionMenu = "All " + captionMenu + "\n(click to add)";
-                        pageTags = tagService.getAllByTagGroup(tagGroup, page, 20);
+                        pageHubs = hubService.getAllByHubGroup(hubGroup, page, 20);
                     }
-                    case WITHOUT_MY_TAGS -> {
+                    case WITHOUT_MY_HUBS -> {
                         captionMenu = "Without my " + captionMenu + "\n(click to add)";
-                        pageTags = tagService.getWithoutUserTags(user.getId(), tagGroup, page, 20);
+                        pageHubs = hubService.getWithoutUserHubs(user.getId(), hubGroup, page, 20);
                     }
-                    case MY_TAGS -> {
+                    case MY_HUBS -> {
                         captionMenu = "My " + captionMenu + "\n(click to remove)";
-                        pageTags = userService.getByIdAndTagGroup(user.getId(), tagGroup, page, 20);
+                        pageHubs = userService.getByIdAndHubGroup(user.getId(), hubGroup, page, 20);
                     }
                 }
 
-                if (pageTags != null && pageTags.hasContent()) {
-                    page = pageTags.getNumber();
-                    captionMenu = captionMenu + " [page " + (page + 1) + " of " + pageTags.getTotalPages() + "]";
+                if (pageHubs != null && pageHubs.hasContent()) {
+                    page = pageHubs.getNumber();
+                    captionMenu = captionMenu + " [page " + (page + 1) + " of " + pageHubs.getTotalPages() + "]";
                 } else {
                     captionMenu = captionMenu + " [empty]";
                 }
 
-                keyboard = TagMenu.getTagsPageableButtons(pageTags, pressedButton);
+                keyboard = HubMenu.getHubsPageableButtons(pageHubs, pressedButton);
             }
 
             tgmBot.editMessageText(chatId, messageId, captionMenu, keyboard);
