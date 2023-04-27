@@ -8,7 +8,7 @@ docker stop bot || true \
   -e DB_PASSWORD=$DB_PASSWORD \
   -e HABR_TG_BOT_TOKEN=$HABR_TG_BOT_TOKEN \
   -e REPORTING_TG_BOT_USER_ID=$REPORTING_TG_BOT_USER_ID \
-  -v /root/pg-habr-bot:/root/work/habr-tg-bot \
+  -v /root/bot-project:/root/work/habr-tg-bot \
   -v /root/work/gradle_caches:/root/.gradle \
   tg-bot
 
