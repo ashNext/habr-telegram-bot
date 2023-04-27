@@ -48,6 +48,10 @@ public class ParseHabrService {
                             user -> {
                                 boolean send = false;
 
+                                log.info("[updateUserFeed] user="+user);
+                                log.info("[updateUserFeed] userHubs()="+user.getHubs());
+                                log.info("[updateUserFeed] postHubs()="+post.getHubs());
+
                                 if (user.getHubs().isEmpty() || post.getHubs().isEmpty()) {
                                     send = true;
                                 } else {

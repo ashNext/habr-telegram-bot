@@ -37,7 +37,7 @@ public class HabrParser {
 
         Element metaElement = getElementByClass(articleElement, "tm-article-presenter__meta");
         //hubs
-        List<String> hubs = articleSnippetElement.getElementsByClass("tm-hubs-list__link")
+        List<String> hubs = metaElement.getElementsByClass("tm-hubs-list__link")
                 .stream()
                 .map(Element::text)
                 .toList();
