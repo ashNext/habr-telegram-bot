@@ -60,10 +60,16 @@ public class ParseHabrService {
                                 }
 
                                 if (send) {
-                                    tgmBot.sendMessage(
-                                            user.getTelegramChatId(),
-                                            String.format(TG_INSTANT_VIEW_TEMPLATE, post.getUrl()),
-                                            BookmarkMenu.getButtonsWithAdd());
+                                    if (user.getTelegramUserId() > 0) {
+                                        tgmBot.sendMessage(
+                                                user.getTelegramChatId(),
+                                                String.format(TG_INSTANT_VIEW_TEMPLATE, post.getUrl()),
+                                                BookmarkMenu.getButtonsWithAdd());
+                                    } else {
+                                        tgmBot.sendMessage(
+                                                user.getTelegramChatId(),
+                                                String.format(TG_INSTANT_VIEW_TEMPLATE, post.getUrl()));
+                                    }
                                 }
                             }
                     )

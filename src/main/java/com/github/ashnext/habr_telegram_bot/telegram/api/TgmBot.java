@@ -1,6 +1,8 @@
 package com.github.ashnext.habr_telegram_bot.telegram.api;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ashnext.habr_telegram_bot.telegram.api.response.*;
 import com.github.ashnext.habr_telegram_bot.telegram.api.types.BotCommand;
@@ -32,7 +34,9 @@ public class TgmBot {
     private final String url;
     private final Long serviceUserId;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     public TgmBot(String botToken, OkHttpClient okHttpClient, Long serviceUserId) {
         client = okHttpClient;
