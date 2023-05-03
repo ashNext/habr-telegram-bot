@@ -7,8 +7,7 @@ import lombok.ToString;
 import javax.persistence.*;
 import java.util.UUID;
 
-@Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@MappedSuperclass
 @Getter
 @EqualsAndHashCode
 @ToString

@@ -1,5 +1,5 @@
 plugins {
-    id "org.springframework.boot" version "2.7.10"
+    id "org.springframework.boot" version "2.7.11"
     id "io.spring.dependency-management" version "1.1.0"
     id "java"
     id "idea"
@@ -26,23 +26,24 @@ configurations {
 dependencies {
     implementation 'org.yaml:snakeyaml:2.0'
 
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.7.10'
-    implementation 'org.springframework.boot:spring-boot-starter-log4j2:2.7.10'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.10'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.7.10'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    implementation 'org.postgresql:postgresql:42.6.0'
+    implementation 'org.liquibase:liquibase-core:4.21.1'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-55:3.3.2'
 
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-    implementation 'org.postgresql:postgresql:42.6.0'
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.2'
 
     compileOnly 'org.projectlombok:lombok:1.18.26'
-    annotationProcessor "org.projectlombok:lombok:1.18.20"
-
-    implementation 'org.liquibase:liquibase-core:4.21.1'
+    annotationProcessor "org.projectlombok:lombok:1.18.26"
 }
 
 test {

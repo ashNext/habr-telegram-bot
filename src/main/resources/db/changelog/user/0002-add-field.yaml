@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0002-user-add-field
+      author: a.shadrin
+      runInTransaction: false
+      changes:
+        - addColumn:
+            tableName: user
+            columns:
+              - column:
+                  name: tags
+                  type: text[]
