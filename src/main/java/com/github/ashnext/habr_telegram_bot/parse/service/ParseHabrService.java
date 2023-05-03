@@ -48,15 +48,23 @@ public class ParseHabrService {
                             user -> {
                                 boolean send = false;
 
-                                log.info("[updateUserFeed] user="+user);
-                                log.info("[updateUserFeed] userHubs()="+user.getHubs());
-                                log.info("[updateUserFeed] postHubs()="+post.getHubs());
+                                log.info("[updateUserFeed] user=" + user);
+                                log.info("[updateUserFeed] userHubs()=" + user.getHubs());
+                                log.info("[updateUserFeed] postHubs()=" + post.getHubs());
+                                log.info("[updateUserFeed] userTags()=" + user.getTags());
+                                log.info("[updateUserFeed] postTags()=" + post.getTags());
 
-                                if (user.getHubs().isEmpty() || post.getHubs().isEmpty()) {
+                                if ((user.getHubs().isEmpty() && user.getTags().isEmpty()) || post.getHubs().isEmpty()) {
                                     send = true;
                                 } else {
                                     for (Hub userHub : user.getHubs()) {
                                         if (post.getHubs().contains(userHub.getName())) {
+                                            send = true;
+                                            break;
+                                        }
+                                    }
+                                    for (String tag : user.getTags()) {
+                                        if (post.getTags().contains(tag.toLowerCase())) {
                                             send = true;
                                             break;
                                         }
