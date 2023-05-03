@@ -104,6 +104,10 @@ public class UserService {
     public Page<String> getPageTagsById(User user, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
+        if (user.getTags().isEmpty()) {
+            return null;
+        }
+
         List<String> tags = user.getTags().stream().sorted().toList();
 
         int start = (int) pageable.getOffset();
