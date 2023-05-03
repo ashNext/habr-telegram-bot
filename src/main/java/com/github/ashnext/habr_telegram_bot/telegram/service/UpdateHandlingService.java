@@ -109,9 +109,13 @@ public class UpdateHandlingService {
                     if (waitingTagInputToUser.get(user.getId()) != null && waitingTagInputToUser.get(user.getId())) {
                         msg = "Something is wrong";
                         if (!text.startsWith("/")) {
-                            List<String> tags = Arrays.stream(text.split(",")).distinct().toList();
-                            userService.addTags(user, tags);
-                            msg = "Tags " + tags + " successfully added";
+                            List<String> tags = Arrays.stream(text.split(",")).distinct().map(String::trim).toList();
+                            List<String> addedTags = userService.addTags(user, tags);
+                            if (addedTags.isEmpty()) {
+                                msg = "Tags have already been added";
+                            } else {
+                                msg = "Tags " + addedTags + " successfully added";
+                            }
                         }
                     } else {
                         msg = "I don't understand yet ((";

@@ -45,7 +45,7 @@ public class HabrParser {
         //tags
         List<String> tags = metaElement.getElementsByClass("tm-tags-list__link")
                 .stream()
-                .map(Element::text)
+                .map(element -> element.text().toLowerCase())
                 .toList();
 
         //body

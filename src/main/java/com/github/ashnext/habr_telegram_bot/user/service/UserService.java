@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -120,9 +121,16 @@ public class UserService {
                 tags.size());
     }
 
-    public void addTags(User user, List<String> tagNames) {
-        user.getTags().addAll(tagNames);
+    public List<String> addTags(User user, List<String> tagNames) {
+        List<String> tagsToAdd = new ArrayList<>();
+        for (String tag: tagNames) {
+            if (!user.getTags().contains(tag)){
+                tagsToAdd.add(tag);
+            }
+        }
+        user.getTags().addAll(tagsToAdd);
         userRepository.save(user);
+        return tagsToAdd;
     }
 
     private Optional<User> getByIdWithHubs(UUID id) {
