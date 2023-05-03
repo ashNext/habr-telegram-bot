@@ -54,7 +54,7 @@ public class ParseHabrService {
                                 log.info("[updateUserFeed] userTags()=" + user.getTags());
                                 log.info("[updateUserFeed] postTags()=" + post.getTags());
 
-                                if ((user.getHubs().isEmpty() && user.getTags() != null && user.getTags().isEmpty()) || post.getHubs().isEmpty()) {
+                                if ((user.getHubs().isEmpty() && (user.getTags() == null || user.getTags().isEmpty())) || post.getHubs().isEmpty()) {
                                     send = true;
                                 } else {
                                     for (Hub userHub : user.getHubs()) {
