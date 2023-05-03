@@ -276,7 +276,7 @@ public class UpdateHandlingService {
                     }
                     case MY_HUBS -> {
                         captionMenu = "My " + captionMenu + "\n(click to remove)";
-                        pageHubs = userService.getPageHubsByIdAndHubGroup(user, hubGroup, page, 20);
+                        pageHubs = userService.getPageHubsByIdAndHubGroup(user.getId(), hubGroup, page, 20);
                     }
                 }
 

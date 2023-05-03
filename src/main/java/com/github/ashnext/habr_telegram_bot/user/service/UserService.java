@@ -75,24 +75,29 @@ public class UserService {
         return Optional.empty();
     }
 
-    public Page<Hub> getPageHubsByIdAndHubGroup(User user, HubGroup hubGroup, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+    public Page<Hub> getPageHubsByIdAndHubGroup(UUID userId, HubGroup hubGroup, int page, int size) {
+        Optional<User> user = userRepository.findWithHubsByIdAndHubGroup(userId, hubGroup);
 
-        List<Hub> hubs = user.getHubs();
+        if (user.isPresent()) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), hubs.size());
+            List<Hub> hubs = user.get().getHubs();
 
-        if (hubs.subList(start, end).isEmpty()) {
-            pageable = PageRequest.of(--page, size, Sort.by(Sort.Direction.ASC, "name"));
-            start = (int) pageable.getOffset();
-            end = Math.min((start + pageable.getPageSize()), hubs.size());
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), hubs.size());
+
+            if (hubs.subList(start, end).isEmpty()) {
+                pageable = PageRequest.of(--page, size, Sort.by(Sort.Direction.ASC, "name"));
+                start = (int) pageable.getOffset();
+                end = Math.min((start + pageable.getPageSize()), hubs.size());
+            }
+
+            return new PageImpl<>(
+                    hubs.subList(start, end),
+                    pageable,
+                    hubs.size());
         }
-
-        return new PageImpl<>(
-                hubs.subList(start, end),
-                pageable,
-                hubs.size());
+        return null;
     }
 
     public Page<String> getPageTagsById(User user, int page, int size) {
