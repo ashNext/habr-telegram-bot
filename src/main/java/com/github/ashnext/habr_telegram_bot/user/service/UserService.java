@@ -128,6 +128,9 @@ public class UserService {
     public List<String> addTags(User user, List<String> tagNames) {
         List<String> tagsToAdd = new ArrayList<>();
         for (String tag: tagNames) {
+            if (user.getTags() == null) {
+                user.setTags(new ArrayList<>());
+            }
             if (!user.getTags().contains(tag)){
                 tagsToAdd.add(tag);
             }
