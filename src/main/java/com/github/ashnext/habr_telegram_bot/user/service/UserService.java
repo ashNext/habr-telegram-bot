@@ -65,7 +65,7 @@ public class UserService {
     }
 
     public Optional<String> removeTagByUserAndTagName(User user, String tagName) {
-        if (user.getTags().contains(tagName)) {
+        if (user.getTags() != null && user.getTags().contains(tagName)) {
             user.getTags().remove(tagName);
             userRepository.save(user);
             return Optional.of(tagName);

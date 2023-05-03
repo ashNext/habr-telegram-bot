@@ -1,10 +1,10 @@
 package com.github.ashnext.habr_telegram_bot.parse.service;
 
+import com.github.ashnext.habr_telegram_bot.hub.Hub;
+import com.github.ashnext.habr_telegram_bot.hub.service.HubService;
 import com.github.ashnext.habr_telegram_bot.parse.HabrParser;
 import com.github.ashnext.habr_telegram_bot.parse.HabrParserException;
 import com.github.ashnext.habr_telegram_bot.parse.model.Post;
-import com.github.ashnext.habr_telegram_bot.hub.Hub;
-import com.github.ashnext.habr_telegram_bot.hub.service.HubService;
 import com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot;
 import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkMenu;
 import com.github.ashnext.habr_telegram_bot.user.User;
@@ -54,7 +54,7 @@ public class ParseHabrService {
                                 log.info("[updateUserFeed] userTags()=" + user.getTags());
                                 log.info("[updateUserFeed] postTags()=" + post.getTags());
 
-                                if ((user.getHubs().isEmpty() && user.getTags().isEmpty()) || post.getHubs().isEmpty()) {
+                                if ((user.getHubs().isEmpty() && user.getTags() != null && user.getTags().isEmpty()) || post.getHubs().isEmpty()) {
                                     send = true;
                                 } else {
                                     for (Hub userHub : user.getHubs()) {
@@ -63,10 +63,12 @@ public class ParseHabrService {
                                             break;
                                         }
                                     }
-                                    for (String tag : user.getTags()) {
-                                        if (post.getTags().contains(tag.toLowerCase())) {
-                                            send = true;
-                                            break;
+                                    if (user.getTags() != null) {
+                                        for (String tag : user.getTags()) {
+                                            if (post.getTags().contains(tag.toLowerCase())) {
+                                                send = true;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
