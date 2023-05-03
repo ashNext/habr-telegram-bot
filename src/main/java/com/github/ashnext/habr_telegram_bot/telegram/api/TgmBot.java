@@ -27,7 +27,8 @@ public class TgmBot {
             new BotCommand(Command.SUB.getCommand(), "Subscribe to articles"),
             new BotCommand(Command.UNSUB.getCommand(), "Cancel subscription"),
             new BotCommand(Command.BOOKMARKS.getCommand(), "Bookmarks"),
-            new BotCommand(Command.HUBS.getCommand(), "Hub management")
+            new BotCommand(Command.HUBS.getCommand(), "Hubs management"),
+            new BotCommand(Command.TAGS.getCommand(), "Tags management")
     );
 
     private final OkHttpClient client;

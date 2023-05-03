@@ -1,13 +1,13 @@
 package com.github.ashnext.habr_telegram_bot.telegram.api;
 
 public enum Command {
-    START, SUB, UNSUB, BOOKMARKS, HUBS;
+    UNKNOWN, START, SUB, UNSUB, BOOKMARKS, HUBS, TAGS;
 
     public String getCommand() {
         return "/" + this.name().toLowerCase();
     }
 
     public static Command valueOfCommand(String value) {
-        return Command.valueOf((value.startsWith("/") ? value.substring(1) : value).toUpperCase());
+        return value.startsWith("/") ? Command.valueOf(value.substring(1).toUpperCase()) : UNKNOWN;
     }
 }

@@ -14,7 +14,7 @@ Configuration:
       AppenderRef:
         - ref: CONSOLE
     Logger:
-      - name: ashnext.telegram
+      - name: com.github.ashnext.habr_telegram_bot
         additivity: false
         level: debug
         AppenderRef:

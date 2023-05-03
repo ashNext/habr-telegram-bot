@@ -13,6 +13,9 @@ import com.github.ashnext.habr_telegram_bot.telegram.api.types.*;
 import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkButton;
 import com.github.ashnext.habr_telegram_bot.telegram.control.bookmark.BookmarkMenu;
 import com.github.ashnext.habr_telegram_bot.telegram.control.hub.*;
+import com.github.ashnext.habr_telegram_bot.telegram.control.tag.ActionTagButton;
+import com.github.ashnext.habr_telegram_bot.telegram.control.tag.TagButton;
+import com.github.ashnext.habr_telegram_bot.telegram.control.tag.TagMenu;
 import com.github.ashnext.habr_telegram_bot.user.User;
 import com.github.ashnext.habr_telegram_bot.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static com.github.ashnext.habr_telegram_bot.telegram.api.TgmBot.TG_INSTANT_VIEW_TEMPLATE;
 
@@ -42,6 +43,8 @@ public class UpdateHandlingService {
 
     private final HubService hubService;
 
+    private final Map<UUID, Boolean> waitingTagInputToUser = new HashMap<>();
+
     public void processMessage(Message message) {
         final String firstName = message.getTgmUser().getFirstName();
         final Long tgmUserId = message.getTgmUser().getId();
@@ -51,7 +54,8 @@ public class UpdateHandlingService {
 
         User user = userService.getByTelegramUserId(tgmUserId);
 
-        Command command = Command.valueOfCommand(message.getText());
+        String text = message.getText();
+        Command command = Command.valueOfCommand(text);
 
         if (command == Command.START) {
             if (user != null) {
@@ -87,15 +91,37 @@ public class UpdateHandlingService {
                     tgmBot.deleteMessage(message.getChat().getId(), message.getMessageId());
                     buttons = HubMenu.getHubManagementButtons();
 
-                    msg = "Hub management:";
+                    msg = "Hubs management:";
+                    if (buttons.getInlineKeyboard().length == 0) {
+                        msg = msg + " empty";
+                    }
+                }
+                case TAGS -> {
+                    tgmBot.deleteMessage(message.getChat().getId(), message.getMessageId());
+                    buttons = TagMenu.getTagManagementButtons();
+
+                    msg = "Tags management:";
                     if (buttons.getInlineKeyboard().length == 0) {
                         msg = msg + " empty";
                     }
                 }
                 default -> {
-                    msg = "I don't understand yet ((";
-                    log.warn("Unprocessed user (tgmUserId={}) message '{}'", tgmUserId, message.getText());
+                    if (waitingTagInputToUser.get(user.getId()) != null && waitingTagInputToUser.get(user.getId())) {
+                        msg = "Something is wrong";
+                        if (!text.startsWith("/")) {
+                            List<String> tags = Arrays.stream(text.split(",")).distinct().toList();
+                            userService.addTags(user, tags);
+                            msg = "Tags " + tags + " successfully added";
+                        }
+                    } else {
+                        msg = "I don't understand yet ((";
+                        log.warn("Unprocessed user (tgmUserId={}) message '{}'", tgmUserId, text);
+                    }
                 }
+            }
+
+            if (waitingTagInputToUser.get(user.getId()) != null && waitingTagInputToUser.get(user.getId())) {
+                waitingTagInputToUser.put(user.getId(), false);
             }
         }
 
@@ -201,7 +227,7 @@ public class UpdateHandlingService {
             HubButton pressedButton = HubMenu.getButton(cbqData);
 
             if (pressedButton.getActionHubButton() == ActionHubButton.MANAGEMENT) {
-                captionMenu = "Hub management";
+                captionMenu = "Hubs management";
                 keyboard = HubMenu.getHubManagementButtons();
             } else {
                 Page<Hub> pageHubs = null;
@@ -210,7 +236,7 @@ public class UpdateHandlingService {
                 switch (pressedButton.getActionHubButton()) {
                     case ADD -> {
                         Optional<Hub> addedHub = userService
-                                .addHubByUserIdAndHubId(user.getId(), UUID.fromString(pressedButton.getData()));
+                                .addHubByUserIdAndHubId(user, UUID.fromString(pressedButton.getData()));
 
                         answerCallbackQueryText = addedHub
                                 .map(hub -> "Hab " + hub.getName() + " added")
@@ -222,7 +248,7 @@ public class UpdateHandlingService {
                     }
                     case REMOVE -> {
                         Optional<Hub> removedHub = userService
-                                .removeHubByUserIdAndHubId(user.getId(), UUID.fromString(pressedButton.getData()));
+                                .removeHubByUserIdAndHubId(user, UUID.fromString(pressedButton.getData()));
 
                         answerCallbackQueryText = removedHub
                                 .map(hub -> "Hub " + hub.getName() + " removed")
@@ -250,7 +276,7 @@ public class UpdateHandlingService {
                     }
                     case MY_HUBS -> {
                         captionMenu = "My " + captionMenu + "\n(click to remove)";
-                        pageHubs = userService.getByIdAndHubGroup(user.getId(), hubGroup, page, 20);
+                        pageHubs = userService.getPageHubsByIdAndHubGroup(user, hubGroup, page, 20);
                     }
                 }
 
@@ -262,6 +288,58 @@ public class UpdateHandlingService {
                 }
 
                 keyboard = HubMenu.getHubsPageableButtons(pageHubs, pressedButton);
+            }
+
+            tgmBot.editMessageText(chatId, messageId, captionMenu, keyboard);
+            tgmBot.answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
+        } else if (cbqData.startsWith("tg:")) {
+            String answerCallbackQueryText = "";
+            String captionMenu;
+            InlineKeyboardMarkup keyboard;
+
+            TagButton pressedButton = TagMenu.getButton(cbqData);
+
+            if (pressedButton.getActionTagButton() == ActionTagButton.MANAGEMENT) {
+                captionMenu = "Tags management";
+                keyboard = TagMenu.getTagManagementButtons();
+            } else {
+                Page<String> pageTags = null;
+                int page = pressedButton.getPage();
+
+                switch (pressedButton.getActionTagButton()) {
+                    case NEW -> {
+                        tgmBot.sendMessage(chatId, "Enter tag(s) to add:\ntag1[,tag2,tag3]");
+                        tgmBot.answerCallbackQuery(callbackQuery.getId(), answerCallbackQueryText);
+                        waitingTagInputToUser.put(user.getId(), true);
+                        return;
+                    }
+                    case REMOVE -> {
+                        Optional<String> removedTag = userService
+                                .removeTagByUserAndTagName(user, pressedButton.getData());
+
+                        answerCallbackQueryText = removedTag
+                                .map(tag -> "Tag " + tag + " removed")
+                                .orElse("The tag has already been removed");
+                    }
+                }
+
+                captionMenu = "My tags";
+
+                switch (pressedButton.getGroupTag()) {
+                    case MY_TAGS -> {
+                        captionMenu = captionMenu + "\n(click to remove)";
+                        pageTags = userService.getPageTagsById(user, page, 20);
+                    }
+                }
+
+                if (pageTags != null && pageTags.hasContent()) {
+                    page = pageTags.getNumber();
+                    captionMenu = captionMenu + " [page " + (page + 1) + " of " + pageTags.getTotalPages() + "]";
+                } else {
+                    captionMenu = captionMenu + " [empty]";
+                }
+
+                keyboard = TagMenu.getTagsPageableButtons(pageTags, pressedButton);
             }
 
             tgmBot.editMessageText(chatId, messageId, captionMenu, keyboard);

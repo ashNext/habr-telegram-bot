@@ -35,59 +35,89 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public Optional<Hub> addHubByUserIdAndHubId(UUID userId, UUID hubId) {
-        Optional<User> user = getByIdWithHubs(userId);
+    public Optional<Hub> addHubByUserIdAndHubId(User user, UUID hubId) {
         Optional<Hub> hub = hubService.getById(hubId);
 
-        if (hub.isPresent() && user.isPresent()) {
-            List<Hub> userHubs = user.get().getHubs();
+        if (hub.isPresent()) {
+            List<Hub> userHubs = user.getHubs();
             if (!userHubs.contains(hub.get())) {
-                user.get().getHubs().add(hub.get());
-                update(user.get());
+                user.getHubs().add(hub.get());
+                update(user);
                 return hub;
             }
         }
         return Optional.empty();
     }
 
-    public Optional<Hub> removeHubByUserIdAndHubId(UUID userId, UUID hubId) {
-        Optional<User> user = getByIdWithHubs(userId);
+    public Optional<Hub> removeHubByUserIdAndHubId(User user, UUID hubId) {
         Optional<Hub> hub = hubService.getById(hubId);
 
-        if (hub.isPresent() && user.isPresent()) {
-            List<Hub> userHubs = user.get().getHubs();
+        if (hub.isPresent()) {
+            List<Hub> userHubs = user.getHubs();
             if (userHubs.contains(hub.get())) {
-                user.get().getHubs().remove(hub.get());
-                update(user.get());
+                user.getHubs().remove(hub.get());
+                update(user);
                 return hub;
             }
         }
         return Optional.empty();
     }
 
-    public Page<Hub> getByIdAndHubGroup(UUID userId, HubGroup hubGroup, int page, int size) {
-        Optional<User> user = userRepository.findWithHubsByIdAndHubGroup(userId, hubGroup);
-
-        if (user.isPresent()) {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
-
-            List<Hub> hubs = user.get().getHubs();
-
-            int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), hubs.size());
-
-            if (hubs.subList(start, end).isEmpty()) {
-                pageable = PageRequest.of(--page, size, Sort.by(Sort.Direction.ASC, "name"));
-                start = (int) pageable.getOffset();
-                end = Math.min((start + pageable.getPageSize()), hubs.size());
-            }
-
-            return new PageImpl<>(
-                    hubs.subList(start, end),
-                    pageable,
-                    hubs.size());
+    public Optional<String> removeTagByUserAndTagName(User user, String tagName) {
+        if (user.getTags().contains(tagName)) {
+            user.getTags().remove(tagName);
+            userRepository.save(user);
+            return Optional.of(tagName);
+        } else {
+            log.error("[removeTagByUserIdAndTagName] not found tag by name={} for userId={}", tagName, user.getId());
         }
-        return null;
+
+        return Optional.empty();
+    }
+
+    public Page<Hub> getPageHubsByIdAndHubGroup(User user, HubGroup hubGroup, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+
+        List<Hub> hubs = user.getHubs();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), hubs.size());
+
+        if (hubs.subList(start, end).isEmpty()) {
+            pageable = PageRequest.of(--page, size, Sort.by(Sort.Direction.ASC, "name"));
+            start = (int) pageable.getOffset();
+            end = Math.min((start + pageable.getPageSize()), hubs.size());
+        }
+
+        return new PageImpl<>(
+                hubs.subList(start, end),
+                pageable,
+                hubs.size());
+    }
+
+    public Page<String> getPageTagsById(User user, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<String> tags = user.getTags().stream().sorted().toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), tags.size());
+
+        if (tags.subList(start, end).isEmpty()) {
+            pageable = PageRequest.of(--page, size);
+            start = (int) pageable.getOffset();
+            end = Math.min((start + pageable.getPageSize()), tags.size());
+        }
+
+        return new PageImpl<>(
+                tags.subList(start, end),
+                pageable,
+                tags.size());
+    }
+
+    public void addTags(User user, List<String> tagNames) {
+        user.getTags().addAll(tagNames);
+        userRepository.save(user);
     }
 
     private Optional<User> getByIdWithHubs(UUID id) {
