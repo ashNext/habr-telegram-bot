@@ -38,12 +38,13 @@ public class UserService {
 
     public Optional<Hub> addHubByUserIdAndHubId(User user, UUID hubId) {
         Optional<Hub> hub = hubService.getById(hubId);
+        Optional<User> userWithHubs = userRepository.findByIdWithHubs(user.getId());
 
-        if (hub.isPresent()) {
-            List<Hub> userHubs = user.getHubs();
+        if (hub.isPresent() && userWithHubs.isPresent()) {
+            List<Hub> userHubs =  userWithHubs.get().getHubs();
             if (!userHubs.contains(hub.get())) {
-                user.getHubs().add(hub.get());
-                update(user);
+                userWithHubs.get().getHubs().add(hub.get());
+                update(userWithHubs.get());
                 return hub;
             }
         }
@@ -52,12 +53,13 @@ public class UserService {
 
     public Optional<Hub> removeHubByUserIdAndHubId(User user, UUID hubId) {
         Optional<Hub> hub = hubService.getById(hubId);
+        Optional<User> userWithHubs = userRepository.findByIdWithHubs(user.getId());
 
-        if (hub.isPresent()) {
-            List<Hub> userHubs = user.getHubs();
+        if (hub.isPresent() && userWithHubs.isPresent()) {
+            List<Hub> userHubs = userWithHubs.get().getHubs();
             if (userHubs.contains(hub.get())) {
-                user.getHubs().remove(hub.get());
-                update(user);
+                userWithHubs.get().getHubs().remove(hub.get());
+                update(userWithHubs.get());
                 return hub;
             }
         }
