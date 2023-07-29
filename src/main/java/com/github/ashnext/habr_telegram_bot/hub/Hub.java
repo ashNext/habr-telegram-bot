@@ -1,12 +1,11 @@
 package com.github.ashnext.habr_telegram_bot.hub;
 
 import com.github.ashnext.habr_telegram_bot.model.BaseEntity;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.*;
 
 @Entity()
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name"}, name = "unq$hub$name")})

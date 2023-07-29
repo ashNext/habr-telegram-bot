@@ -1,6 +1,6 @@
 plugins {
-    id "org.springframework.boot" version "2.7.11"
-    id "io.spring.dependency-management" version "1.1.0"
+    id "org.springframework.boot" version "3.1.2"
+    id "io.spring.dependency-management" version "1.1.2"
     id "java"
     id "idea"
 }
@@ -9,8 +9,8 @@ group = "habr.telegram.bot"
 version = "0.0.1-SNAPSHOT"
 
 compileJava {
-    targetCompatibility = "17"
-    sourceCompatibility = "17"
+    targetCompatibility = "20"
+    sourceCompatibility = "20"
 }
 
 repositories {
@@ -34,16 +34,16 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     implementation 'org.postgresql:postgresql:42.6.0'
-    implementation 'org.liquibase:liquibase-core:4.21.1'
-    implementation 'io.hypersistence:hypersistence-utils-hibernate-55:3.3.2'
+    implementation 'org.liquibase:liquibase-core:4.23.0'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-62:3.5.1'
 
-    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-    implementation 'org.jsoup:jsoup:1.15.4'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.11.0'
+    implementation 'org.jsoup:jsoup:1.16.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.2'
 
-    compileOnly 'org.projectlombok:lombok:1.18.26'
-    annotationProcessor "org.projectlombok:lombok:1.18.26"
+    compileOnly 'org.projectlombok:lombok:1.18.28'
+    annotationProcessor "org.projectlombok:lombok:1.18.28"
 }
 
 test {

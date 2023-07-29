@@ -2,12 +2,11 @@ package com.github.ashnext.habr_telegram_bot.bookmark;
 
 import com.github.ashnext.habr_telegram_bot.model.BaseEntity;
 import com.github.ashnext.habr_telegram_bot.user.User;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.*;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "post_url"}, name = "unq$bookmark$user_id_post_url"))

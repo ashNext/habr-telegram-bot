@@ -3,18 +3,16 @@ package com.github.ashnext.habr_telegram_bot.user;
 import com.github.ashnext.habr_telegram_bot.hub.Hub;
 import com.github.ashnext.habr_telegram_bot.model.BaseEntity;
 import io.hypersistence.utils.hibernate.type.array.ListArrayType;
-import lombok.*;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
-import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@TypeDefs({
-        @TypeDef(name = "list-array", typeClass = ListArrayType.class)
-})
 @Table(
         name = "`user`",
         uniqueConstraints = {
@@ -60,7 +58,7 @@ public class User extends BaseEntity {
     )
     private List<Hub> hubs;
 
-    @Type(type = "list-array")
+    @Type(ListArrayType.class)
     @Column(name = "tags", columnDefinition = "text[]")
     private List<String> tags;
 
