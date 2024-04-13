@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk:17-latest
+FROM azul/zulu-openjdk:21-latest
 ENV PROJ_HOME=/root/work/habr-tg-bot
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV DB_PASSWORD=$DB_PASSWORD
