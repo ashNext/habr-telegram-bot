@@ -133,7 +133,7 @@ public class ParseHabrService {
                 return Optional.of(HabrParser.parseNewPost(postHtml, postUrl));
             } catch (HabrParserException e) {
                 log.error("Warning in parseAndGetPost: Failed to parse the post ({}): {}", postUrl, e.getMessage());
-                tgmBot.sendServiceMessage("[parseAndGetPost] postUrl=" + postUrl + "e.message=" + e.getMessage());
+                tgmBot.sendServiceMessage("[parseAndGetPost] postUrl=" + postUrl + " Error: " + e.getMessage());
             }
         } catch (IOException ioException) {
             log.error("Error in parseAndGetPost when getting the document ({}): {}", postUrl, ioException.getMessage(), ioException);
@@ -150,7 +150,7 @@ public class ParseHabrService {
                 return HabrParser.parsePostsOnNewPage(html);
             } catch (HabrParserException e) {
                 log.error("Warning in parseAndGetPostsOnPage: Failed to parse the site ({}): {}", pageUrl, e.getMessage());
-                tgmBot.sendServiceMessage("[parseAndGetPostsOnPage] pageUrl=" + pageUrl + "e.message=" + e.getMessage());
+                tgmBot.sendServiceMessage("[parseAndGetPostsOnPage] pageUrl=" + pageUrl + " Error: " + e.getMessage());
             }
         } catch (IOException ioException) {
             log.error("Warning in parseAndGetUrlsOnPage when getting the document ({}): {}", pageUrl, ioException.getMessage(),
