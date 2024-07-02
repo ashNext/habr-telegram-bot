@@ -22,7 +22,7 @@ public class HabrParser {
                 "tm-article-presenter__content tm-article-presenter__content_narrow");
 
         Element articleSnippetElement = getElementByClass(articleElement,
-                "tm-article-snippet tm-article-presenter__snippet tm-article-snippet");
+                "tm-article-snippet tm-article-snippet tm-article-presenter__snippet");
 
         //time
         Element datetimePublishedElement = getElementByClass(articleSnippetElement,
